@@ -72,6 +72,19 @@
         .info-note { background: #e8f4fd; border-radius: 12px; padding: 10px 14px; margin-top: 16px; font-size: 11px; color: #1e3a5f; }
         .check-cell { text-align: center !important; width: 44px; }
         .passenger-check { width: 22px; height: 22px; cursor: pointer; transform: scale(1); }
+        
+        /* Кнопка обновления */
+        .refresh-btn {
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            margin-left: auto;
+            cursor: pointer;
+        }
+        .refresh-btn:active { background: #2c4a6e; }
     </style>
 </head>
 <body>
@@ -80,6 +93,7 @@
         <h1>
             <button class="back-btn" id="backBtn" style="display: none;">←</button>
             <span id="pageTitle">👑 Учёт пассажиров</span>
+            <button class="refresh-btn" id="refreshBtn">⟳ Обновить</button>
         </h1>
     </div>
     
@@ -97,11 +111,13 @@
     
     <div class="subtitle" id="subtitle">Рейсы на ближайшие дни</div>
     <div id="mainContent"><div class="loading">Загрузка...</div></div>
-    <div class="info-note">Нажмите на время → общая сводка → пассажиры</div>
+    <div class="info-note">Нажмите на время → общая сводка → пассажиры. Чтобы обновить данные — нажмите кнопку "Обновить".</div>
 </div>
 
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbw36l-bcrQ4kv4x77xy2x1YaKaWq2JqTCxmuix8O7lswmZ3CDCRGMDcOj4NIJksstM4NA/exec';
+    // Добавляем параметр времени для обхода кэша
+    const CACHE_BUSTER = Date.now();
+    const API_URL = `https://script.google.com/macros/s/AKfycbw36l-bcrQ4kv4x77xy2x1YaKaWq2JqTCxmuix8O7lswmZ3CDCRGMDcOj4NIJksstM4NA/exec?_=${CACHE_BUSTER}`;
     const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
     
     let allData = [];
@@ -188,9 +204,15 @@
     }
     
     async function loadData() {
+        const loadingDiv = document.getElementById('mainContent');
+        loadingDiv.innerHTML = '<div class="loading">Загрузка данных...</div>';
+        
         try {
-            const response = await fetch(API_URL);
-            let data = await response.json();
+            console.log('Загрузка данных с:', API_URL);
+            const response = await fetch(API_URL, { cache: 'no-store' });
+            const data = await response.json();
+            console.log('Получено записей:', data.length);
+            
             allData = data.map(item => {
                 let seatsCount = item.seats ? Number(item.seats) : 1;
                 if (isNaN(seatsCount)) seatsCount = 1;
@@ -206,9 +228,14 @@
                     payment: item.payment || ''
                 };
             }).filter(item => item !== null && item.date && item.route && item.time);
+            
+            console.log('Обработано записей:', allData.length);
+            console.log('Пример данных:', allData.slice(0, 2));
+            
             renderCurrentView();
         } catch (error) {
-            document.getElementById('mainContent').innerHTML = '<div class="empty-state">Ошибка загрузки</div>';
+            console.error('Ошибка:', error);
+            loadingDiv.innerHTML = '<div class="empty-state">❌ Ошибка загрузки данных. Проверьте интернет и нажмите "Обновить".</div>';
         }
     }
     
@@ -269,28 +296,31 @@
         const container = document.getElementById('mainContent');
         const dates = getUniqueDates();
         if (dates.length === 0) {
-            container.innerHTML = '<div class="empty-state">Нет рейсов</div>';
+            container.innerHTML = '<div class="empty-state">Нет рейсов. Нажмите "Обновить" если данные должны быть.</div>';
             return;
         }
         container.innerHTML = `<div class="dates-scroll">${dates.map(date => `<div class="date-chip" data-date="${date}">${date}<span class="date-seats">${getTotalSeatsForDate(date)} м</span></div>`).join('')}</div><div id="timesContainer"></div>`;
+        
         document.querySelectorAll('.date-chip').forEach(chip => {
-            chip.onclick = () => {
+            chip.addEventListener('click', (e) => {
+                e.preventDefault();
                 selectedDate = chip.dataset.date;
                 document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
                 chip.classList.add('active');
                 renderTimesView();
                 currentView = 'times';
                 renderCurrentView();
-            };
+            });
         });
+        
         if (selectedDate && dates.includes(selectedDate)) {
-            document.querySelector(`.date-chip[data-date="${selectedDate}"]`).click();
+            const chip = document.querySelector(`.date-chip[data-date="${selectedDate}"]`);
+            if (chip) chip.click();
         } else if (dates.length > 0) {
             document.querySelector('.date-chip').click();
         }
     }
     
-    // ОТЛАДОЧНАЯ ВЕРСИЯ renderTimesView - всегда показывает пассажиров
     function renderTimesView() {
         const routesByTime = getRoutesByTime(selectedDate);
         const container = document.getElementById('timesContainer') || document.getElementById('mainContent');
@@ -300,76 +330,70 @@
             return;
         }
         
-        let html = '';
-        
-        for (let tb of routesByTime) {
-            const timeId = tb.time.replace(':', '');
-            const hasPassengers = Object.keys(tb.routes).length > 0;
-            
-            html += `
-                <div class="time-group">
-                    <div class="time-header" data-time="${tb.time}">
-                        <span>${tb.time}</span>
-                        <span class="time-seats">${tb.totalSeats} мест</span>
-                    </div>
-                    <div class="time-content" id="tc-${timeId}" style="display: block;">
-            `;
-            
-            if (hasPassengers) {
-                html += `
-                    <div class="summary-block" data-time="${tb.time}">
-                        <span class="summary-title">📋 Общая сводка</span>
-                        <span class="summary-seats">${tb.totalSeats} мест</span>
-                    </div>
-                    <div class="routes-details" id="rd-${timeId}" style="display: block;">
-                `;
-                
-                for (let route in tb.routes) {
-                    const passengers = getPassengersByDateTime(selectedDate, tb.time, route);
-                    const totalSeats = passengers.reduce((s,p) => s + p.seats, 0);
-                    html += `
-                        <div class="route-detail">
-                            <div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${totalSeats} чел</span></div>
-                            <div class="table-wrapper"><table class="passengers-table">
-                                <thead><tr><th>№</th><th>ФИО</th><th>Тел.</th><th>М</th><th>Оплата</th><th></th></tr></thead>
-                                <tbody>
-                    `;
-                    
-                    passengers.forEach((p, idx) => {
-                        const checkKey = `${selectedDate}_${route}_${tb.time}_${idx}`;
-                        html += `
-                            <tr>
-                                <td>${idx+1}</td>
-                                <td><strong>${p.name}</strong></td>
-                                <td>${p.phone}</td>
-                                <td>${p.seats}</td>
-                                <td>${formatPayment(p.payment)}</td>
-                                <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}></td>
-                            </tr>
-                        `;
-                    });
-                    
-                    html += `
-                                </tbody>
-                            </table></div>
+        container.innerHTML = routesByTime.map(timeBlock => `
+            <div class="time-group">
+                <div class="time-header" data-time="${timeBlock.time}">
+                    <span>${timeBlock.time}</span>
+                    <span class="time-seats">${timeBlock.totalSeats} мест</span>
+                </div>
+                <div class="time-content" id="tc-${timeBlock.time.replace(':', '')}" style="display:none">
+                    ${Object.keys(timeBlock.routes).length > 0 ? `
+                        <div class="summary-block" data-time="${timeBlock.time}">
+                            <span class="summary-title">Общая сводка</span>
+                            <span class="summary-seats">${timeBlock.totalSeats} мест</span>
                         </div>
-                    `;
+                        <div class="routes-details" id="rd-${timeBlock.time.replace(':', '')}" style="display:none">
+                            ${Object.keys(timeBlock.routes).map(route => {
+                                const passengers = getPassengersByDateTime(selectedDate, timeBlock.time, route);
+                                const totalSeats = passengers.reduce((s,p) => s + p.seats, 0);
+                                return `<div class="route-detail"><div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th><tr></thead><tbody>${passengers.map((p, idx) => {
+                                    const checkKey = `${selectedDate}_${route}_${timeBlock.time}_${idx}`;
+                                    return `<tr>
+                                        <td>${idx+1}</td>
+                                        <td><strong>${p.name}</strong></td>
+                                        <td>${p.phone}</td>
+                                        <td>${p.seats}</td>
+                                        <td>${formatPayment(p.payment)}</td>
+                                        <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}>侧
+                                    </tr>`;
+                                }).join('')}</tbody></table></div>`}</div>`;
+                            }).join('')}
+                        </div>
+                    ` : '<div class="empty-state" style="padding: 20px;">Нет пассажиров</div>'}
+                </div>
+            </div>
+        `).join('');
+        
+        // ИСПРАВЛЕННЫЕ ОБРАБОТЧИКИ ДЛЯ iPhone
+        document.querySelectorAll('.time-header').forEach(header => {
+            const time = header.dataset.time;
+            const content = document.getElementById(`tc-${time.replace(':', '')}`);
+            header.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (content.style.display === 'none' || content.style.display === '') {
+                    content.style.display = 'block';
+                } else {
+                    content.style.display = 'none';
                 }
-                
-                html += `</div>`;
-            } else {
-                html += `<div class="empty-state" style="padding: 20px;">Нет пассажиров</div>`;
-            }
-            
-            html += `</div></div>`;
-        }
-        
-        container.innerHTML = html;
-        
-        // Обработчики для чекбоксов
-        document.querySelectorAll('.passenger-check').forEach(cb => {
-            cb.onchange = () => saveCheckToStorage(cb.dataset.key, cb.checked);
+            });
         });
+        
+        document.querySelectorAll('.summary-block').forEach(summary => {
+            const time = summary.dataset.time;
+            const details = document.getElementById(`rd-${time.replace(':', '')}`);
+            summary.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (details.style.display === 'none' || details.style.display === '') {
+                    details.style.display = 'block';
+                    summary.style.background = '#eef2f6';
+                } else {
+                    details.style.display = 'none';
+                    summary.style.background = '#f8f9fa';
+                }
+            });
+        });
+        
+        document.querySelectorAll('.passenger-check').forEach(cb => cb.onchange = () => saveCheckToStorage(cb.dataset.key, cb.checked));
     }
     
     document.getElementById('driverSelect').onchange = (e) => {
@@ -378,12 +402,18 @@
         currentView = 'dates';
         renderCurrentView();
     };
+    
     document.getElementById('backBtn').onclick = () => {
         if (currentView === 'times') {
             currentView = 'dates';
             selectedDate = null;
             renderCurrentView();
         }
+    };
+    
+    // Кнопка принудительного обновления
+    document.getElementById('refreshBtn').onclick = () => {
+        loadData();
     };
     
     loadChecksFromStorage();
