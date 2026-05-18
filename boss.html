@@ -290,6 +290,7 @@
         }
     }
     
+    // ОТЛАДОЧНАЯ ВЕРСИЯ renderTimesView - всегда показывает пассажиров
     function renderTimesView() {
         const routesByTime = getRoutesByTime(selectedDate);
         const container = document.getElementById('timesContainer') || document.getElementById('mainContent');
@@ -299,77 +300,76 @@
             return;
         }
         
-        container.innerHTML = routesByTime.map(timeBlock => `
-            <div class="time-group">
-                <div class="time-header" data-time="${timeBlock.time}">
-                    <span>${timeBlock.time}</span>
-                    <span class="time-seats">${timeBlock.totalSeats} мест</span>
-                </div>
-                <div class="time-content" id="tc-${timeBlock.time.replace(':', '')}" style="display:none">
-                    ${Object.keys(timeBlock.routes).length > 0 ? `
-                        <div class="summary-block" data-time="${timeBlock.time}">
-                            <span class="summary-title">📋 Общая сводка</span>
-                            <span class="summary-seats">${timeBlock.totalSeats} мест</span>
+        let html = '';
+        
+        for (let tb of routesByTime) {
+            const timeId = tb.time.replace(':', '');
+            const hasPassengers = Object.keys(tb.routes).length > 0;
+            
+            html += `
+                <div class="time-group">
+                    <div class="time-header" data-time="${tb.time}">
+                        <span>${tb.time}</span>
+                        <span class="time-seats">${tb.totalSeats} мест</span>
+                    </div>
+                    <div class="time-content" id="tc-${timeId}" style="display: block;">
+            `;
+            
+            if (hasPassengers) {
+                html += `
+                    <div class="summary-block" data-time="${tb.time}">
+                        <span class="summary-title">📋 Общая сводка</span>
+                        <span class="summary-seats">${tb.totalSeats} мест</span>
+                    </div>
+                    <div class="routes-details" id="rd-${timeId}" style="display: block;">
+                `;
+                
+                for (let route in tb.routes) {
+                    const passengers = getPassengersByDateTime(selectedDate, tb.time, route);
+                    const totalSeats = passengers.reduce((s,p) => s + p.seats, 0);
+                    html += `
+                        <div class="route-detail">
+                            <div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${totalSeats} чел</span></div>
+                            <div class="table-wrapper"><table class="passengers-table">
+                                <thead><tr><th>№</th><th>ФИО</th><th>Тел.</th><th>М</th><th>Оплата</th><th></th></tr></thead>
+                                <tbody>
+                    `;
+                    
+                    passengers.forEach((p, idx) => {
+                        const checkKey = `${selectedDate}_${route}_${tb.time}_${idx}`;
+                        html += `
+                            <tr>
+                                <td>${idx+1}</td>
+                                <td><strong>${p.name}</strong></td>
+                                <td>${p.phone}</td>
+                                <td>${p.seats}</td>
+                                <td>${formatPayment(p.payment)}</td>
+                                <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}></td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                                </tbody>
+                            </table></div>
                         </div>
-                        <div class="routes-details" id="rd-${timeBlock.time.replace(':', '')}" style="display:none">
-                            ${Object.keys(timeBlock.routes).map(route => {
-                                const passengers = getPassengersByDateTime(selectedDate, timeBlock.time, route);
-                                const totalSeats = passengers.reduce((s,p) => s + p.seats, 0);
-                                return `<div class="route-detail">
-                                    <div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${totalSeats} чел</span></div>
-                                    ${passengers.length === 0 ? '<div class="empty-state" style="padding: 15px;">Нет пассажиров</div>' : `
-                                    <div class="table-wrapper"><table class="passengers-table">
-                                        <thead><tr><th>№</th><th>ФИО</th><th>Тел.</th><th>М</th><th>Оплата</th><th></th></tr></thead>
-                                        <tbody>${passengers.map((p, idx) => {
-                                            const checkKey = `${selectedDate}_${route}_${timeBlock.time}_${idx}`;
-                                            return `<tr>
-                                                <td>${idx+1}侧
-                                                <td><strong>${p.name}</strong>侧
-                                                <td>${p.phone}侧
-                                                <td>${p.seats}侧
-                                                <td>${formatPayment(p.payment)}侧
-                                                <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}>侧
-                                            </tr>`;
-                                        }).join('')}</tbody>
-                                    </table></div>`}
-                                </div>`;
-                            }).join('')}
-                        </div>
-                    ` : '<div class="empty-state" style="padding: 20px;">Нет пассажиров</div>'}
-                </div>
-            </div>
-        `).join('');
-        
-        // ИСПРАВЛЕННЫЕ ОБРАБОТЧИКИ ДЛЯ iPhone
-        document.querySelectorAll('.time-header').forEach(header => {
-            const time = header.dataset.time;
-            const content = document.getElementById(`tc-${time.replace(':', '')}`);
-            header.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (content.style.display === 'none' || content.style.display === '') {
-                    content.style.display = 'block';
-                } else {
-                    content.style.display = 'none';
+                    `;
                 }
-            });
-        });
+                
+                html += `</div>`;
+            } else {
+                html += `<div class="empty-state" style="padding: 20px;">Нет пассажиров</div>`;
+            }
+            
+            html += `</div></div>`;
+        }
         
-        document.querySelectorAll('.summary-block').forEach(summary => {
-            const time = summary.dataset.time;
-            const details = document.getElementById(`rd-${time.replace(':', '')}`);
-            summary.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (details.style.display === 'none' || details.style.display === '') {
-                    details.style.display = 'block';
-                    summary.style.background = '#eef2f6';
-                } else {
-                    details.style.display = 'none';
-                    summary.style.background = '#f8f9fa';
-                }
-            });
-        });
+        container.innerHTML = html;
         
-        document.querySelectorAll('.passenger-check').forEach(cb => cb.onchange = () => saveCheckToStorage(cb.dataset.key, cb.checked));
+        // Обработчики для чекбоксов
+        document.querySelectorAll('.passenger-check').forEach(cb => {
+            cb.onchange = () => saveCheckToStorage(cb.dataset.key, cb.checked);
+        });
     }
     
     document.getElementById('driverSelect').onchange = (e) => {
@@ -378,13 +378,13 @@
         currentView = 'dates';
         renderCurrentView();
     };
-    document.getElementById('backBtn').addEventListener('click', () => {
+    document.getElementById('backBtn').onclick = () => {
         if (currentView === 'times') {
             currentView = 'dates';
             selectedDate = null;
             renderCurrentView();
         }
-    });
+    };
     
     loadChecksFromStorage();
     loadData();
