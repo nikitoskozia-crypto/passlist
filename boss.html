@@ -97,10 +97,11 @@
     
     <div class="subtitle" id="subtitle">Рейсы на ближайшие дни</div>
     <div id="mainContent"><div class="loading">Загрузка...</div></div>
-    <div class="info-note">Нажмите на время → общая сводка → пассажиры. Назначить водителя — в колонке "Водитель" таблицы.</div>
+    <div class="info-note">Нажмите на время → общая сводка → пассажиры</div>
 </div>
 
 <script>
+    // НОВАЯ ССЫЛКА НА APPS SCRIPT (замените на вашу)
     const API_URL = 'https://script.google.com/macros/s/AKfycbwNKIKIFg6TixVqv1Tjx9IbKBiUlTfUN6yr6qMpYbni_J80zUjcsyTXsZtceUsZv9t-gg/exec';
     const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
     
@@ -187,11 +188,23 @@
         return String(rawTime);
     }
     
-    async function loadData() {
-        try {
-            const response = await fetch(API_URL);
-            let data = await response.json();
-            allData = data.map(item => {
+    // ЗАГРУЗКА ДАННЫХ ЧЕРЕЗ JSONP (обходит CORS)
+    function loadData() {
+        const loadingDiv = document.getElementById('mainContent');
+        loadingDiv.innerHTML = '<div class="loading">Загрузка данных...</div>';
+        
+        const callbackName = 'jsonp_callback_' + Date.now() + '_' + Math.random().toString(36);
+        
+        window[callbackName] = function(data) {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            
+            if (data && data.error) {
+                loadingDiv.innerHTML = `<div class="empty-state">🔒 ${data.error}</div>`;
+                return;
+            }
+            
+            allData = (data || []).map(item => {
                 let seatsCount = item.seats ? Number(item.seats) : 1;
                 if (isNaN(seatsCount)) seatsCount = 1;
                 if (seatsCount === 0) return null;
@@ -206,10 +219,17 @@
                     payment: item.payment || ''
                 };
             }).filter(item => item !== null && item.date && item.route && item.time);
+            
             renderCurrentView();
-        } catch (error) {
-            document.getElementById('mainContent').innerHTML = '<div class="empty-state">Ошибка загрузки</div>';
-        }
+        };
+        
+        const script = document.createElement('script');
+        script.src = `${API_URL}?callback=${callbackName}&t=${Date.now()}`;
+        script.onerror = () => {
+            delete window[callbackName];
+            loadingDiv.innerHTML = '<div class="empty-state">❌ Ошибка загрузки данных. Проверьте интернет.</div>';
+        };
+        document.body.appendChild(script);
     }
     
     function getFilteredData() { return filterByDriver(allData); }
@@ -317,7 +337,7 @@
                                         <td>${p.phone}</td>
                                         <td>${p.seats}</td>
                                         <td>${formatPayment(p.payment)}</td>
-                                        <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}></td>
+                                        <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}>侧
                                     </tr>`;
                                 }).join('')}</tbody></table></div>`}</div>`;
                             }).join('')}
