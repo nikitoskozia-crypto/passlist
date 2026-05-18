@@ -101,7 +101,8 @@
 </div>
 
 <script>
-    // НОВАЯ ССЫЛКА НА APPS SCRIPT (замените на вашу)
+    // ========== НАСТРОЙКИ ==========
+    // ВСТАВЬТЕ ВАШУ НОВУЮ ССЫЛКУ
     const API_URL = 'https://script.google.com/macros/s/AKfycbz5zurOxgHAM5-xIG3UOx46cFt0IdufMQ5knKViMyvsLnxKE8m5OCsWuvBmPvIHkYTi/exec';
     const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
     
@@ -133,7 +134,7 @@
             if (moneyMatch) return `<span class="payment-badge payment-cash">Нал ${moneyMatch[0]} ₽</span>`;
             return `<span class="payment-badge payment-cash">Наличные</span>`;
         }
-        if (lowerPayment.includes('безнал') || lowerPayment === 'без') return `<span class="payment-badge payment-cashless">💳 Безнал</span>`;
+        if (lowerPayment.includes('безнал') || lowerPayment === 'без') return `<span class="payment-badge payment-cashless">Безнал</span>`;
         return `<span class="payment-badge payment-cashless">${payment}</span>`;
     }
     
@@ -188,16 +189,15 @@
         return String(rawTime);
     }
     
-    // ЗАГРУЗКА ДАННЫХ ЧЕРЕЗ JSONP (обходит CORS)
+    // ЗАГРУЗКА ДАННЫХ ЧЕРЕЗ JSONP
     function loadData() {
         const loadingDiv = document.getElementById('mainContent');
         loadingDiv.innerHTML = '<div class="loading">Загрузка данных...</div>';
         
-        const callbackName = 'jsonp_callback_' + Date.now() + '_' + Math.random().toString(36);
+        const callbackName = 'jsonp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
         
         window[callbackName] = function(data) {
             delete window[callbackName];
-            document.body.removeChild(script);
             
             if (data && data.error) {
                 loadingDiv.innerHTML = `<div class="empty-state">🔒 ${data.error}</div>`;
@@ -224,12 +224,12 @@
         };
         
         const script = document.createElement('script');
-        script.src = `${API_URL}?callback=${callbackName}&t=${Date.now()}`;
+        script.src = `${API_URL}?callback=${callbackName}&_=${Date.now()}`;
         script.onerror = () => {
             delete window[callbackName];
-            loadingDiv.innerHTML = '<div class="empty-state">❌ Ошибка загрузки данных. Проверьте интернет.</div>';
+            loadingDiv.innerHTML = '<div class="empty-state">❌ Ошибка загрузки. Проверьте интернет.</div>';
         };
-        document.body.appendChild(script);
+        document.head.appendChild(script);
     }
     
     function getFilteredData() { return filterByDriver(allData); }
@@ -289,22 +289,26 @@
         const container = document.getElementById('mainContent');
         const dates = getUniqueDates();
         if (dates.length === 0) {
-            container.innerHTML = '<div class="empty-state">Нет рейсов</div>';
+            container.innerHTML = '<div class="empty-state">Нет рейсов. Нажмите "Обновить" если данные должны быть.</div>';
             return;
         }
         container.innerHTML = `<div class="dates-scroll">${dates.map(date => `<div class="date-chip" data-date="${date}">${date}<span class="date-seats">${getTotalSeatsForDate(date)} м</span></div>`).join('')}</div><div id="timesContainer"></div>`;
+        
         document.querySelectorAll('.date-chip').forEach(chip => {
-            chip.onclick = () => {
+            chip.addEventListener('click', (e) => {
+                e.preventDefault();
                 selectedDate = chip.dataset.date;
                 document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
                 chip.classList.add('active');
                 renderTimesView();
                 currentView = 'times';
                 renderCurrentView();
-            };
+            });
         });
+        
         if (selectedDate && dates.includes(selectedDate)) {
-            document.querySelector(`.date-chip[data-date="${selectedDate}"]`).click();
+            const chip = document.querySelector(`.date-chip[data-date="${selectedDate}"]`);
+            if (chip) chip.click();
         } else if (dates.length > 0) {
             document.querySelector('.date-chip').click();
         }
@@ -313,6 +317,12 @@
     function renderTimesView() {
         const routesByTime = getRoutesByTime(selectedDate);
         const container = document.getElementById('timesContainer') || document.getElementById('mainContent');
+        
+        if (routesByTime.length === 0) {
+            container.innerHTML = '<div class="empty-state">Нет рейсов на эту дату</div>';
+            return;
+        }
+        
         container.innerHTML = routesByTime.map(timeBlock => `
             <div class="time-group">
                 <div class="time-header" data-time="${timeBlock.time}">
@@ -329,7 +339,7 @@
                             ${Object.keys(timeBlock.routes).map(route => {
                                 const passengers = getPassengersByDateTime(selectedDate, timeBlock.time, route);
                                 const totalSeats = passengers.reduce((s,p) => s + p.seats, 0);
-                                return `<div class="route-detail"><div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th></tr></thead><tbody>${passengers.map((p, idx) => {
+                                return `<div class="route-detail"><div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th><table></thead><tbody>${passengers.map((p, idx) => {
                                     const checkKey = `${selectedDate}_${route}_${timeBlock.time}_${idx}`;
                                     return `<tr>
                                         <td>${idx+1}</td>
@@ -350,21 +360,27 @@
         document.querySelectorAll('.time-header').forEach(header => {
             const time = header.dataset.time;
             const content = document.getElementById(`tc-${time.replace(':', '')}`);
-            header.onclick = () => content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            header.addEventListener('click', function(e) {
+                e.preventDefault();
+                content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            });
         });
+        
         document.querySelectorAll('.summary-block').forEach(summary => {
             const time = summary.dataset.time;
             const details = document.getElementById(`rd-${time.replace(':', '')}`);
-            summary.onclick = () => {
-                if (details.style.display === 'none') {
+            summary.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (details.style.display === 'none' || details.style.display === '') {
                     details.style.display = 'block';
                     summary.style.background = '#eef2f6';
                 } else {
                     details.style.display = 'none';
                     summary.style.background = '#f8f9fa';
                 }
-            };
+            });
         });
+        
         document.querySelectorAll('.passenger-check').forEach(cb => cb.onchange = () => saveCheckToStorage(cb.dataset.key, cb.checked));
     }
     
@@ -374,13 +390,14 @@
         currentView = 'dates';
         renderCurrentView();
     };
-    document.getElementById('backBtn').onclick = () => {
+    
+    document.getElementById('backBtn').addEventListener('click', () => {
         if (currentView === 'times') {
             currentView = 'dates';
             selectedDate = null;
             renderCurrentView();
         }
-    };
+    });
     
     loadChecksFromStorage();
     loadData();
