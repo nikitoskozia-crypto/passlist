@@ -84,20 +84,19 @@
     </div>
     
     <div class="driver-selector">
-        <label>👨‍✈️</label>
+        <label>👨‍✈️ Просмотр от имени:</label>
         <select id="driverSelect">
-            <option value="all">👑 Владелец</option>
-            <option value="Водитель 1">🚛 Алексей Б.</option>
-            <option value="Водитель 2">🚛 Валентин К.</option>
-            <option value="Водитель 3">🚛 Водитель 3</option>
-            <option value="Водитель 4">🚛 Водитель 4</option>
+            <option value="all">👑 Все рейсы (владелец)</option>
+            <option value="Алексей Б.">🚛 Алексей Б.</option>
+            <option value="Андрей К.">🚛 Андрей К.</option>
+            <option value="Валентин К.">🚛 Валентин К.</option>
         </select>
-        <div class="driver-note" id="driverNote">Все рейсы</div>
+        <div class="driver-note" id="driverNote">👑 Все рейсы</div>
     </div>
     
     <div class="subtitle" id="subtitle">Рейсы на ближайшие дни</div>
     <div id="mainContent"><div class="loading">Загрузка...</div></div>
-    <div class="info-note">Нажмите на время → общая сводка → пассажиры. Назначить водителя — в колонке "Водитель" таблицы.</div>
+    <div class="info-note">Нажмите на время → общая сводка → пассажиры</div>
 </div>
 
 <script>
@@ -132,7 +131,7 @@
             if (moneyMatch) return `<span class="payment-badge payment-cash">Нал ${moneyMatch[0]} ₽</span>`;
             return `<span class="payment-badge payment-cash">Наличные</span>`;
         }
-        if (lowerPayment.includes('безнал') || lowerPayment === 'без') return `<span class="payment-badge payment-cashless">💳 Безнал</span>`;
+        if (lowerPayment.includes('безнал') || lowerPayment === 'без') return `<span class="payment-badge payment-cashless">Безнал</span>`;
         return `<span class="payment-badge payment-cashless">${payment}</span>`;
     }
     
@@ -212,16 +211,21 @@
         }
     }
     
-    function getFilteredData() { return filterByDriver(allData); }
+    function getFilteredData() { 
+        return filterByDriver(allData); 
+    }
+    
     function getUniqueDates() {
         let filtered = getFilteredData();
         let dates = [...new Set(filtered.map(item => item.date))];
         return getUpcomingDates(dates, 7);
     }
+    
     function getTotalSeatsForDate(date) {
         let filtered = getFilteredData();
         return filtered.filter(item => item.date === date).reduce((sum, item) => sum + item.seats, 0);
     }
+    
     function getRoutesByTime(date) {
         let filtered = getFilteredData().filter(item => item.date === date);
         const result = [];
@@ -240,6 +244,7 @@
         }
         return result;
     }
+    
     function getPassengersByDateTime(date, time, route) {
         let filtered = getFilteredData();
         return filtered.filter(item => item.date === date && item.time === time && item.route === route);
@@ -249,11 +254,13 @@
         const subtitle = document.getElementById('subtitle');
         const driverNote = document.getElementById('driverNote');
         if (currentDriver === 'all') {
-            subtitle.innerHTML = 'Рейсы на ближайшие дни';
+            subtitle.innerHTML = 'Все рейсы на ближайшие дни';
             driverNote.innerHTML = '👑 Все рейсы';
         } else {
-            subtitle.innerHTML = `Рейсы ${currentDriver}`;
-            driverNote.innerHTML = `🚛 Только рейсы ${currentDriver}`;
+            const filtered = getFilteredData();
+            const totalSeats = filtered.reduce((sum, item) => sum + item.seats, 0);
+            subtitle.innerHTML = `Рейсы для ${currentDriver} (всего мест: ${totalSeats})`;
+            driverNote.innerHTML = `🚛 Только рейсы, где назначен ${currentDriver}`;
         }
     }
     
@@ -273,6 +280,7 @@
             return;
         }
         container.innerHTML = `<div class="dates-scroll">${dates.map(date => `<div class="date-chip" data-date="${date}">${date}<span class="date-seats">${getTotalSeatsForDate(date)} м</span></div>`).join('')}</div><div id="timesContainer"></div>`;
+        
         document.querySelectorAll('.date-chip').forEach(chip => {
             chip.onclick = () => {
                 selectedDate = chip.dataset.date;
@@ -283,6 +291,7 @@
                 renderCurrentView();
             };
         });
+        
         if (selectedDate && dates.includes(selectedDate)) {
             document.querySelector(`.date-chip[data-date="${selectedDate}"]`).click();
         } else if (dates.length > 0) {
@@ -293,6 +302,12 @@
     function renderTimesView() {
         const routesByTime = getRoutesByTime(selectedDate);
         const container = document.getElementById('timesContainer') || document.getElementById('mainContent');
+        
+        if (routesByTime.length === 0) {
+            container.innerHTML = '<div class="empty-state">Нет рейсов на эту дату</div>';
+            return;
+        }
+        
         container.innerHTML = routesByTime.map(timeBlock => `
             <div class="time-group">
                 <div class="time-header" data-time="${timeBlock.time}">
@@ -312,12 +327,12 @@
                                 return `<div class="route-detail"><div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th></tr></thead><tbody>${passengers.map((p, idx) => {
                                     const checkKey = `${selectedDate}_${route}_${timeBlock.time}_${idx}`;
                                     return `<tr>
-                                        <td>${idx+1}</td>
-                                        <td><strong>${p.name}</strong></td>
-                                        <td>${p.phone}</td>
-                                        <td>${p.seats}</td>
-                                        <td>${formatPayment(p.payment)}</td>
-                                        <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}></td>
+                                        <td>${idx+1}侧
+                                        <td><strong>${p.name}</strong>侧
+                                        <td>${p.phone}侧
+                                        <td>${p.seats}侧
+                                        <td>${formatPayment(p.payment)}侧
+                                        <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}>侧
                                     </tr>`;
                                 }).join('')}</tbody></table></div>`}</div>`;
                             }).join('')}
@@ -332,6 +347,7 @@
             const content = document.getElementById(`tc-${time.replace(':', '')}`);
             header.onclick = () => content.style.display = content.style.display === 'none' ? 'block' : 'none';
         });
+        
         document.querySelectorAll('.summary-block').forEach(summary => {
             const time = summary.dataset.time;
             const details = document.getElementById(`rd-${time.replace(':', '')}`);
@@ -345,6 +361,7 @@
                 }
             };
         });
+        
         document.querySelectorAll('.passenger-check').forEach(cb => cb.onchange = () => saveCheckToStorage(cb.dataset.key, cb.checked));
     }
     
@@ -354,6 +371,7 @@
         currentView = 'dates';
         renderCurrentView();
     };
+    
     document.getElementById('backBtn').onclick = () => {
         if (currentView === 'times') {
             currentView = 'dates';
