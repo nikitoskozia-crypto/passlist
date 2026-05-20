@@ -97,12 +97,12 @@
     
     <div class="subtitle" id="subtitle">Рейсы на ближайшие дни</div>
     <div id="mainContent"><div class="loading">Загрузка...</div></div>
-    <div class="info-note">Нажмите на время → общая сводка → пассажиры. Назначить водителя — в колонке "Водитель" таблицы.</div>
+    <div class="info-note">Нажмите на время → общая сводка → пассажиры</div>
 </div>
 
 <script>
     // ========== НАСТРОЙКИ ==========
-    // CLOUDFLARE WORKER (ваш прокси для обхода CORS)
+    // CLOUDFLARE WORKER (прокси для обхода CORS)
     const WORKER_URL = 'https://young-bird-968e.nikitoskozia.workers.dev';
     // GOOGLE APPS SCRIPT URL
     const API_URL = 'https://script.google.com/macros/s/AKfycbw36l-bcrQ4kv4x77xy2x1YaKaWq2JqTCxmuix8O7lswmZ3CDCRGMDcOj4NIJksstM4NA/exec';
@@ -136,7 +136,7 @@
             if (moneyMatch) return `<span class="payment-badge payment-cash">Нал ${moneyMatch[0]} ₽</span>`;
             return `<span class="payment-badge payment-cash">Наличные</span>`;
         }
-        if (lowerPayment.includes('безнал') || lowerPayment === 'без') return `<span class="payment-badge payment-cashless">💳 Безнал</span>`;
+        if (lowerPayment.includes('безнал') || lowerPayment === 'без') return `<span class="payment-badge payment-cashless">Безнал</span>`;
         return `<span class="payment-badge payment-cashless">${payment}</span>`;
     }
     
@@ -191,15 +191,14 @@
         return String(rawTime);
     }
     
-    // ========== ОСНОВНАЯ ФУНКЦИЯ ЗАГРУЗКИ (через Worker) ==========
+    // ЗАГРУЗКА ДАННЫХ ЧЕРЕЗ WORKER
     async function loadData() {
         const loadingDiv = document.getElementById('mainContent');
         loadingDiv.innerHTML = '<div class="loading">Загрузка данных...</div>';
         
         try {
-            // Запрос через Cloudflare Worker (обходит CORS)
             const proxyUrl = `${WORKER_URL}?url=${encodeURIComponent(API_URL)}`;
-            console.log('Запрос через Worker:', proxyUrl);
+            console.log('Запрос к Worker:', proxyUrl);
             
             const response = await fetch(proxyUrl);
             const data = await response.json();
@@ -227,8 +226,8 @@
             
             renderCurrentView();
         } catch (error) {
-            console.error('Ошибка загрузки:', error);
-            loadingDiv.innerHTML = '<div class="empty-state">❌ Ошибка загрузки данных. Проверьте интернет.</div>';
+            console.error('Ошибка:', error);
+            loadingDiv.innerHTML = `<div class="empty-state">❌ Ошибка: ${error.message}</div>`;
         }
     }
     
