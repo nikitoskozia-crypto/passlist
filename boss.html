@@ -72,6 +72,7 @@
         .info-note { background: #e8f4fd; border-radius: 12px; padding: 10px 14px; margin-top: 16px; font-size: 11px; color: #1e3a5f; }
         .check-cell { text-align: center !important; width: 44px; }
         .passenger-check { width: 22px; height: 22px; cursor: pointer; transform: scale(1); }
+        .no-routes-message { padding: 20px; text-align: center; background: white; border-radius: 16px; color: #777; font-size: 14px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -226,21 +227,23 @@
         return filtered.filter(item => item.date === date).reduce((sum, item) => sum + item.seats, 0);
     }
     
-    function getRoutesByTime(date) {
+    // изменённая функция: возвращаем ТОЛЬКО временные слоты, в которых есть хотя бы один пассажир (исключаем пустые рейсы)
+    function getNonEmptyTimesWithRoutes(date) {
         let filtered = getFilteredData().filter(item => item.date === date);
         const result = [];
         for (let time of TIME_ORDER) {
-            const routesAtTime = {};
             const itemsAtTime = filtered.filter(item => item.time === time);
             if (itemsAtTime.length > 0) {
+                const routesMap = new Map(); // route -> seats
                 itemsAtTime.forEach(item => {
-                    if (!routesAtTime[item.route]) routesAtTime[item.route] = 0;
-                    routesAtTime[item.route] += item.seats;
+                    let currentSeats = routesMap.get(item.route) || 0;
+                    routesMap.set(item.route, currentSeats + item.seats);
                 });
-                result.push({ time: time, routes: routesAtTime, totalSeats: Object.values(routesAtTime).reduce((a,b) => a + b, 0) });
-            } else {
-                result.push({ time: time, routes: {}, totalSeats: 0 });
+                const routes = Object.fromEntries(routesMap);
+                const totalSeats = Object.values(routes).reduce((a,b) => a + b, 0);
+                result.push({ time: time, routes: routes, totalSeats: totalSeats });
             }
+            // Если пассажиров по данному времени нет - пропускаем (не добавляем слот)
         }
         return result;
     }
@@ -254,13 +257,14 @@
         const subtitle = document.getElementById('subtitle');
         const driverNote = document.getElementById('driverNote');
         if (currentDriver === 'all') {
-            subtitle.innerHTML = 'Все рейсы на ближайшие дни';
+            subtitle.innerHTML = 'Ближайшие рейсы';
             driverNote.innerHTML = '👑 Все рейсы';
         } else {
             const filtered = getFilteredData();
             const totalSeats = filtered.reduce((sum, item) => sum + item.seats, 0);
-            subtitle.innerHTML = `Рейсы для ${currentDriver} (всего мест: ${totalSeats})`;
-            driverNote.innerHTML = `🚛 Только рейсы, где назначен ${currentDriver}`;
+            // Убираем строку "(всего мест: X)" в соответствии с требованием
+            subtitle.innerHTML = `Рейсы для ${currentDriver}`;
+            driverNote.innerHTML = `🚛 Только рейсы с водителем ${currentDriver}`;
         }
     }
     
@@ -300,15 +304,22 @@
     }
     
     function renderTimesView() {
-        const routesByTime = getRoutesByTime(selectedDate);
+        // Получаем ТОЛЬКО времена с пассажирами (непустые)
+        const nonEmptyTimeSlots = getNonEmptyTimesWithRoutes(selectedDate);
         const container = document.getElementById('timesContainer') || document.getElementById('mainContent');
         
-        if (routesByTime.length === 0) {
-            container.innerHTML = '<div class="empty-state">Нет рейсов на эту дату</div>';
+        if (!selectedDate) {
+            container.innerHTML = '<div class="empty-state">Выберите дату</div>';
             return;
         }
         
-        container.innerHTML = routesByTime.map(timeBlock => `
+        if (nonEmptyTimeSlots.length === 0) {
+            container.innerHTML = '<div class="empty-state">Нет пассажиров на эту дату</div>';
+            return;
+        }
+        
+        // Рендерим только те временные блоки, где есть пассажиры
+        container.innerHTML = nonEmptyTimeSlots.map(timeBlock => `
             <div class="time-group">
                 <div class="time-header" data-time="${timeBlock.time}">
                     <span>${timeBlock.time}</span>
@@ -327,12 +338,12 @@
                                 return `<div class="route-detail"><div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th></tr></thead><tbody>${passengers.map((p, idx) => {
                                     const checkKey = `${selectedDate}_${route}_${timeBlock.time}_${idx}`;
                                     return `<tr>
-                                        <td>${idx+1}侧
-                                        <td><strong>${p.name}</strong>侧
-                                        <td>${p.phone}侧
-                                        <td>${p.seats}侧
-                                        <td>${formatPayment(p.payment)}侧
-                                        <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}>侧
+                                        <td>${idx+1}</td>
+                                        <td><strong>${escapeHtml(p.name)}</strong></td>
+                                        <td>${escapeHtml(p.phone)}</td>
+                                        <td>${p.seats}</td>
+                                        <td>${formatPayment(p.payment)}</td>
+                                        <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}></td>
                                     </tr>`;
                                 }).join('')}</tbody></table></div>`}</div>`;
                             }).join('')}
@@ -342,29 +353,57 @@
             </div>
         `).join('');
         
+        // Добавляем обработчики для раскрытия по времени (основные заголовки)
         document.querySelectorAll('.time-header').forEach(header => {
             const time = header.dataset.time;
             const content = document.getElementById(`tc-${time.replace(':', '')}`);
-            header.onclick = () => content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            if (content) {
+                header.onclick = (e) => {
+                    e.stopPropagation();
+                    const isVisible = content.style.display === 'block';
+                    content.style.display = isVisible ? 'none' : 'block';
+                };
+            }
         });
         
+        // Обработчики для сводки (общая сводка) -> показываем детали по маршрутам
         document.querySelectorAll('.summary-block').forEach(summary => {
             const time = summary.dataset.time;
             const details = document.getElementById(`rd-${time.replace(':', '')}`);
-            summary.onclick = () => {
-                if (details.style.display === 'none') {
-                    details.style.display = 'block';
-                    summary.style.background = '#eef2f6';
-                } else {
-                    details.style.display = 'none';
-                    summary.style.background = '#f8f9fa';
-                }
-            };
+            if (details) {
+                summary.onclick = (e) => {
+                    e.stopPropagation();
+                    if (details.style.display === 'none') {
+                        details.style.display = 'block';
+                        summary.style.background = '#eef2f6';
+                    } else {
+                        details.style.display = 'none';
+                        summary.style.background = '#f8f9fa';
+                    }
+                };
+            }
         });
         
-        document.querySelectorAll('.passenger-check').forEach(cb => cb.onchange = () => saveCheckToStorage(cb.dataset.key, cb.checked));
+        // Сохраняем чекбоксы прибытия
+        document.querySelectorAll('.passenger-check').forEach(cb => {
+            cb.onchange = () => saveCheckToStorage(cb.dataset.key, cb.checked);
+        });
     }
     
+    // Простая защита от XSS
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+    
+    // Обработка смены водителя
     document.getElementById('driverSelect').onchange = (e) => {
         currentDriver = e.target.value;
         selectedDate = null;
