@@ -97,12 +97,10 @@
     
     <div class="subtitle" id="subtitle">Рейсы на ближайшие дни</div>
     <div id="mainContent"><div class="loading">Загрузка...</div></div>
-    <div class="info-note">Нажмите на время → общая сводка → пассажиры</div>
+    <div class="info-note">Нажмите на время → общая сводка → пассажиры. Назначить водителя — в колонке "Водитель" таблицы.</div>
 </div>
 
 <script>
-    // ========== НАСТРОЙКИ (ОБНОВЛЕНО!) ==========
-    const WORKER_URL = 'https://cors-proxy-new.nikitoskozia.workers.dev';
     const API_URL = 'https://script.google.com/macros/s/AKfycbw36l-bcrQ4kv4x77xy2x1YaKaWq2JqTCxmuix8O7lswmZ3CDCRGMDcOj4NIJksstM4NA/exec';
     const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
     
@@ -134,7 +132,7 @@
             if (moneyMatch) return `<span class="payment-badge payment-cash">Нал ${moneyMatch[0]} ₽</span>`;
             return `<span class="payment-badge payment-cash">Наличные</span>`;
         }
-        if (lowerPayment.includes('безнал') || lowerPayment === 'без') return `<span class="payment-badge payment-cashless">Безнал</span>`;
+        if (lowerPayment.includes('безнал') || lowerPayment === 'без') return `<span class="payment-badge payment-cashless">💳 Безнал</span>`;
         return `<span class="payment-badge payment-cashless">${payment}</span>`;
     }
     
@@ -190,22 +188,10 @@
     }
     
     async function loadData() {
-        const loadingDiv = document.getElementById('mainContent');
-        loadingDiv.innerHTML = '<div class="loading">Загрузка данных...</div>';
-        
         try {
-            const proxyUrl = `${WORKER_URL}?url=${encodeURIComponent(API_URL)}`;
-            console.log('Запрос к Worker:', proxyUrl);
-            
-            const response = await fetch(proxyUrl);
-            const data = await response.json();
-            
-            if (data && data.error) {
-                loadingDiv.innerHTML = `<div class="empty-state">🔒 ${data.error}</div>`;
-                return;
-            }
-            
-            allData = (data || []).map(item => {
+            const response = await fetch(API_URL);
+            let data = await response.json();
+            allData = data.map(item => {
                 let seatsCount = item.seats ? Number(item.seats) : 1;
                 if (isNaN(seatsCount)) seatsCount = 1;
                 if (seatsCount === 0) return null;
@@ -220,11 +206,9 @@
                     payment: item.payment || ''
                 };
             }).filter(item => item !== null && item.date && item.route && item.time);
-            
             renderCurrentView();
         } catch (error) {
-            console.error('Ошибка:', error);
-            loadingDiv.innerHTML = `<div class="empty-state">❌ Ошибка: ${error.message}</div>`;
+            document.getElementById('mainContent').innerHTML = '<div class="empty-state">Ошибка загрузки</div>';
         }
     }
     
@@ -325,7 +309,7 @@
                             ${Object.keys(timeBlock.routes).map(route => {
                                 const passengers = getPassengersByDateTime(selectedDate, timeBlock.time, route);
                                 const totalSeats = passengers.reduce((s,p) => s + p.seats, 0);
-                                return `<div class="route-detail"><div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th><tr></thead><tbody>${passengers.map((p, idx) => {
+                                return `<div class="route-detail"><div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th></tr></thead><tbody>${passengers.map((p, idx) => {
                                     const checkKey = `${selectedDate}_${route}_${timeBlock.time}_${idx}`;
                                     return `<tr>
                                         <td>${idx+1}</td>
@@ -333,8 +317,8 @@
                                         <td>${p.phone}</td>
                                         <td>${p.seats}</td>
                                         <td>${formatPayment(p.payment)}</td>
-                                        <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}>侧
-                                    <tr>`;
+                                        <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}></td>
+                                    </tr>`;
                                 }).join('')}</tbody></table></div>`}</div>`;
                             }).join('')}
                         </div>
