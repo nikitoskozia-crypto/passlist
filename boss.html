@@ -280,8 +280,8 @@
         const subtitle = document.getElementById('subtitle');
         const driverNote = document.getElementById('driverNote');
         if (currentDriver === 'all') {
-            subtitle.innerHTML = 'Ближайшие рейсы (владелец: видны все времена)';
-            driverNote.innerHTML = '👑 Все рейсы, отображаются все временные слоты';
+            subtitle.innerHTML = 'Ближайшие рейсы:';
+            driverNote.innerHTML = '👑 Все рейсы';
         } else {
             subtitle.innerHTML = `Рейсы для ${currentDriver}`;
             driverNote.innerHTML = `🚛 Показываются только времена с пассажирами`;
