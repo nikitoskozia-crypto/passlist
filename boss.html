@@ -101,10 +101,8 @@
 </div>
 
 <script>
-    // ========== НАСТРОЙКИ ==========
-    // CLOUDFLARE WORKER (прокси для обхода CORS)
-    const WORKER_URL = 'https://young-bird-968e.nikitoskozia.workers.dev';
-    // GOOGLE APPS SCRIPT URL
+    // ========== НАСТРОЙКИ (ОБНОВЛЕНО!) ==========
+    const WORKER_URL = 'https://cors-proxy-new.nikitoskozia.workers.dev';
     const API_URL = 'https://script.google.com/macros/s/AKfycbw36l-bcrQ4kv4x77xy2x1YaKaWq2JqTCxmuix8O7lswmZ3CDCRGMDcOj4NIJksstM4NA/exec';
     const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
     
@@ -191,7 +189,6 @@
         return String(rawTime);
     }
     
-    // ЗАГРУЗКА ДАННЫХ ЧЕРЕЗ WORKER
     async function loadData() {
         const loadingDiv = document.getElementById('mainContent');
         loadingDiv.innerHTML = '<div class="loading">Загрузка данных...</div>';
@@ -328,16 +325,16 @@
                             ${Object.keys(timeBlock.routes).map(route => {
                                 const passengers = getPassengersByDateTime(selectedDate, timeBlock.time, route);
                                 const totalSeats = passengers.reduce((s,p) => s + p.seats, 0);
-                                return `<div class="route-detail"><div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th></tr></thead><tbody>${passengers.map((p, idx) => {
+                                return `<div class="route-detail"><div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th><tr></thead><tbody>${passengers.map((p, idx) => {
                                     const checkKey = `${selectedDate}_${route}_${timeBlock.time}_${idx}`;
                                     return `<tr>
-                                        <td>${idx+1}
-                                        <td><strong>${p.name}</strong>
-                                        <td>${p.phone}
-                                        <td>${p.seats}
-                                        <td>${formatPayment(p.payment)}
+                                        <td>${idx+1}</td>
+                                        <td><strong>${p.name}</strong></td>
+                                        <td>${p.phone}</td>
+                                        <td>${p.seats}</td>
+                                        <td>${formatPayment(p.payment)}</td>
                                         <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}>侧
-                                    </tr>`;
+                                    <tr>`;
                                 }).join('')}</tbody></table></div>`}</div>`;
                             }).join('')}
                         </div>
