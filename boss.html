@@ -101,9 +101,9 @@
 </div>
 
 <script>
-    // ========== НАСТРОЙКИ (ОБНОВЛЕНО!) ==========
-    const WORKER_URL = 'https://cors-proxy-new.nikitoskozia.workers.dev';
-    const API_URL = 'https://script.google.com/macros/s/AKfycbw36l-bcrQ4kv4x77xy2x1YaKaWq2JqTCxmuix8O7lswmZ3CDCRGMDcOj4NIJksstM4NA/exec';
+    // ========== НАСТРОЙКИ (JSONP версия) ==========
+    // ВСТАВЬТЕ ВАШУ НОВУЮ ССЫЛКУ НА APPS SCRIPT
+    const API_URL = 'https://script.google.com/macros/s/AKfycby-0cFAvUBBR6JUg6uh6xwBB5kMt4_IFrJRAjW8xqPg-4ASjxFrrd9eZpqqA27CIJqq/exec';
     const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
     
     let allData = [];
@@ -189,16 +189,15 @@
         return String(rawTime);
     }
     
-    async function loadData() {
+    // JSONP ЗАГРУЗКА (обходит CORS и любые блокировки)
+    function loadData() {
         const loadingDiv = document.getElementById('mainContent');
         loadingDiv.innerHTML = '<div class="loading">Загрузка данных...</div>';
         
-        try {
-            const proxyUrl = `${WORKER_URL}?url=${encodeURIComponent(API_URL)}`;
-            console.log('Запрос к Worker:', proxyUrl);
-            
-            const response = await fetch(proxyUrl);
-            const data = await response.json();
+        const callbackName = 'jsonp_callback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+        
+        window[callbackName] = function(data) {
+            delete window[callbackName];
             
             if (data && data.error) {
                 loadingDiv.innerHTML = `<div class="empty-state">🔒 ${data.error}</div>`;
@@ -222,10 +221,15 @@
             }).filter(item => item !== null && item.date && item.route && item.time);
             
             renderCurrentView();
-        } catch (error) {
-            console.error('Ошибка:', error);
-            loadingDiv.innerHTML = `<div class="empty-state">❌ Ошибка: ${error.message}</div>`;
-        }
+        };
+        
+        const script = document.createElement('script');
+        script.src = `${API_URL}?callback=${callbackName}&_=${Date.now()}`;
+        script.onerror = () => {
+            delete window[callbackName];
+            loadingDiv.innerHTML = '<div class="empty-state">❌ Ошибка загрузки. Проверьте интернет.</div>';
+        };
+        document.head.appendChild(script);
     }
     
     function getFilteredData() { return filterByDriver(allData); }
@@ -325,16 +329,16 @@
                             ${Object.keys(timeBlock.routes).map(route => {
                                 const passengers = getPassengersByDateTime(selectedDate, timeBlock.time, route);
                                 const totalSeats = passengers.reduce((s,p) => s + p.seats, 0);
-                                return `<div class="route-detail"><div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th><tr></thead><tbody>${passengers.map((p, idx) => {
+                                return `<div class="route-detail"><div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th></tr></thead><tbody>${passengers.map((p, idx) => {
                                     const checkKey = `${selectedDate}_${route}_${timeBlock.time}_${idx}`;
                                     return `<tr>
-                                        <td>${idx+1}</td>
-                                        <td><strong>${p.name}</strong></td>
-                                        <td>${p.phone}</td>
-                                        <td>${p.seats}</td>
-                                        <td>${formatPayment(p.payment)}</td>
-                                        <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}>侧
-                                    <tr>`;
+                                        <td>${idx+1}
+                                        <td><strong>${p.name}</strong>
+                                        <td>${p.phone}
+                                        <td>${p.seats}
+                                        <td>${formatPayment(p.payment)}
+                                        <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}>
+                                    </tr>`;
                                 }).join('')}</tbody></table></div>`}</div>`;
                             }).join('')}
                         </div>
@@ -381,8 +385,5 @@
     loadChecksFromStorage();
     loadData();
 </script>
-    <!-- Добавьте перед закрывающим </body> -->
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
 </body>
 </html>
