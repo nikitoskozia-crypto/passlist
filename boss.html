@@ -72,7 +72,7 @@
         .info-note { background: #e8f4fd; border-radius: 12px; padding: 10px 14px; margin-top: 16px; font-size: 11px; color: #1e3a5f; }
         .check-cell { text-align: center !important; width: 44px; }
         .passenger-check { width: 22px; height: 22px; cursor: pointer; transform: scale(1); }
-        .no-routes-message { padding: 20px; text-align: center; background: white; border-radius: 16px; color: #777; font-size: 14px; margin-top: 10px; }
+        .zero-badge { background: rgba(255,255,255,0.2); }  /* сохраняем единый стиль */
     </style>
 </head>
 <body>
@@ -227,23 +227,46 @@
         return filtered.filter(item => item.date === date).reduce((sum, item) => sum + item.seats, 0);
     }
     
-    // изменённая функция: возвращаем ТОЛЬКО временные слоты, в которых есть хотя бы один пассажир (исключаем пустые рейсы)
-    function getNonEmptyTimesWithRoutes(date) {
+    // Для владельца: возвращает ВСЕ временные слоты (включая пустые)
+    function getAllTimesWithRoutesForOwner(date) {
         let filtered = getFilteredData().filter(item => item.date === date);
         const result = [];
         for (let time of TIME_ORDER) {
             const itemsAtTime = filtered.filter(item => item.time === time);
             if (itemsAtTime.length > 0) {
-                const routesMap = new Map(); // route -> seats
+                const routesMap = new Map();
                 itemsAtTime.forEach(item => {
                     let currentSeats = routesMap.get(item.route) || 0;
                     routesMap.set(item.route, currentSeats + item.seats);
                 });
                 const routes = Object.fromEntries(routesMap);
                 const totalSeats = Object.values(routes).reduce((a,b) => a + b, 0);
-                result.push({ time: time, routes: routes, totalSeats: totalSeats });
+                result.push({ time: time, routes: routes, totalSeats: totalSeats, isEmpty: false });
+            } else {
+                // Пустой слот — нет пассажиров, но цвет такой же
+                result.push({ time: time, routes: {}, totalSeats: 0, isEmpty: true });
             }
-            // Если пассажиров по данному времени нет - пропускаем (не добавляем слот)
+        }
+        return result;
+    }
+    
+    // Для водителя: возвращает только НЕПУСТЫЕ временные слоты
+    function getNonEmptyTimesWithRoutesForDriver(date) {
+        let filtered = getFilteredData().filter(item => item.date === date);
+        const result = [];
+        for (let time of TIME_ORDER) {
+            const itemsAtTime = filtered.filter(item => item.time === time);
+            if (itemsAtTime.length > 0) {
+                const routesMap = new Map();
+                itemsAtTime.forEach(item => {
+                    let currentSeats = routesMap.get(item.route) || 0;
+                    routesMap.set(item.route, currentSeats + item.seats);
+                });
+                const routes = Object.fromEntries(routesMap);
+                const totalSeats = Object.values(routes).reduce((a,b) => a + b, 0);
+                result.push({ time: time, routes: routes, totalSeats: totalSeats, isEmpty: false });
+            }
+            // Пустые слоты для водителя не показываем
         }
         return result;
     }
@@ -257,14 +280,11 @@
         const subtitle = document.getElementById('subtitle');
         const driverNote = document.getElementById('driverNote');
         if (currentDriver === 'all') {
-            subtitle.innerHTML = 'Ближайшие рейсы';
-            driverNote.innerHTML = '👑 Все рейсы';
+            subtitle.innerHTML = 'Ближайшие рейсы (владелец: видны все времена)';
+            driverNote.innerHTML = '👑 Все рейсы, отображаются все временные слоты';
         } else {
-            const filtered = getFilteredData();
-            const totalSeats = filtered.reduce((sum, item) => sum + item.seats, 0);
-            // Убираем строку "(всего мест: X)" в соответствии с требованием
             subtitle.innerHTML = `Рейсы для ${currentDriver}`;
-            driverNote.innerHTML = `🚛 Только рейсы с водителем ${currentDriver}`;
+            driverNote.innerHTML = `🚛 Показываются только времена с пассажирами`;
         }
     }
     
@@ -297,15 +317,14 @@
         });
         
         if (selectedDate && dates.includes(selectedDate)) {
-            document.querySelector(`.date-chip[data-date="${selectedDate}"]`).click();
+            const activeChip = document.querySelector(`.date-chip[data-date="${selectedDate}"]`);
+            if (activeChip) activeChip.click();
         } else if (dates.length > 0) {
             document.querySelector('.date-chip').click();
         }
     }
     
     function renderTimesView() {
-        // Получаем ТОЛЬКО времена с пассажирами (непустые)
-        const nonEmptyTimeSlots = getNonEmptyTimesWithRoutes(selectedDate);
         const container = document.getElementById('timesContainer') || document.getElementById('mainContent');
         
         if (!selectedDate) {
@@ -313,52 +332,89 @@
             return;
         }
         
-        if (nonEmptyTimeSlots.length === 0) {
-            container.innerHTML = '<div class="empty-state">Нет пассажиров на эту дату</div>';
-            return;
+        let timeSlots = [];
+        const isOwner = (currentDriver === 'all');
+        
+        if (isOwner) {
+            timeSlots = getAllTimesWithRoutesForOwner(selectedDate);
+            if (timeSlots.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет данных по этому дню</div>';
+                return;
+            }
+        } else {
+            timeSlots = getNonEmptyTimesWithRoutesForDriver(selectedDate);
+            if (timeSlots.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет пассажиров на эту дату у этого водителя</div>';
+                return;
+            }
         }
         
-        // Рендерим только те временные блоки, где есть пассажиры
-        container.innerHTML = nonEmptyTimeSlots.map(timeBlock => `
-            <div class="time-group">
-                <div class="time-header" data-time="${timeBlock.time}">
-                    <span>${timeBlock.time}</span>
-                    <span class="time-seats">${timeBlock.totalSeats} мест</span>
-                </div>
-                <div class="time-content" id="tc-${timeBlock.time.replace(':', '')}" style="display:none">
-                    ${Object.keys(timeBlock.routes).length > 0 ? `
-                        <div class="summary-block" data-time="${timeBlock.time}">
-                            <span class="summary-title">Общая сводка</span>
-                            <span class="summary-seats">${timeBlock.totalSeats} мест</span>
+        // Рендерим все временные блоки: для пустых и для занятых ОДИНАКОВЫЙ стиль заголовка (синий #1e3a5f)
+        container.innerHTML = timeSlots.map(slot => {
+            if (slot.isEmpty && isOwner) {
+                // Пустой слот — обычный синий заголовок, внутри сообщение об отсутствии пассажиров
+                return `
+                    <div class="time-group">
+                        <div class="time-header" data-time="${slot.time}">
+                            <span>${slot.time}</span>
+                            <span class="time-seats zero-badge">0 мест</span>
                         </div>
-                        <div class="routes-details" id="rd-${timeBlock.time.replace(':', '')}" style="display:none">
-                            ${Object.keys(timeBlock.routes).map(route => {
-                                const passengers = getPassengersByDateTime(selectedDate, timeBlock.time, route);
-                                const totalSeats = passengers.reduce((s,p) => s + p.seats, 0);
-                                return `<div class="route-detail"><div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th></tr></thead><tbody>${passengers.map((p, idx) => {
-                                    const checkKey = `${selectedDate}_${route}_${timeBlock.time}_${idx}`;
-                                    return `<tr>
-                                        <td>${idx+1}</td>
-                                        <td><strong>${escapeHtml(p.name)}</strong></td>
-                                        <td>${escapeHtml(p.phone)}</td>
-                                        <td>${p.seats}</td>
-                                        <td>${formatPayment(p.payment)}</td>
-                                        <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}></td>
-                                    </tr>`;
-                                }).join('')}</tbody></table></div>`}</div>`;
-                            }).join('')}
+                        <div class="time-content" id="tc-${slot.time.replace(':', '')}" style="display:none">
+                            <div class="empty-state" style="padding: 20px; margin: 8px;">✈️ Нет пассажиров в это время</div>
                         </div>
-                    ` : '<div class="empty-state" style="padding: 20px;">Нет пассажиров</div>'}
-                </div>
-            </div>
-        `).join('');
+                    </div>
+                `;
+            } 
+            else if (!slot.isEmpty) {
+                // Есть пассажиры (и для владельца, и для водителя) — такой же стиль заголовка
+                const hasRoutes = Object.keys(slot.routes).length > 0;
+                return `
+                    <div class="time-group">
+                        <div class="time-header" data-time="${slot.time}">
+                            <span>${slot.time}</span>
+                            <span class="time-seats">${slot.totalSeats} мест</span>
+                        </div>
+                        <div class="time-content" id="tc-${slot.time.replace(':', '')}" style="display:none">
+                            ${hasRoutes ? `
+                                <div class="summary-block" data-time="${slot.time}">
+                                    <span class="summary-title">Общая сводка</span>
+                                    <span class="summary-seats">${slot.totalSeats} мест</span>
+                                </div>
+                                <div class="routes-details" id="rd-${slot.time.replace(':', '')}" style="display:none">
+                                    ${Object.keys(slot.routes).map(route => {
+                                        const passengers = getPassengersByDateTime(selectedDate, slot.time, route);
+                                        const totalSeats = passengers.reduce((s,p) => s + p.seats, 0);
+                                        return `<div class="route-detail"><div><span class="route-title">${escapeHtml(route.replace('-', ' → '))}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th></tr></thead><tbody>${passengers.map((p, idx) => {
+                                            const checkKey = `${selectedDate}_${route}_${slot.time}_${idx}`;
+                                            return `<tr>
+                                                <td>${idx+1}</td>
+                                                <td><strong>${escapeHtml(p.name)}</strong></td>
+                                                <td>${escapeHtml(p.phone)}</td>
+                                                <td>${p.seats}</td>
+                                                <td>${formatPayment(p.payment)}</td>
+                                                <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}></td>
+                                            </tr>`;
+                                        }).join('')}</tbody></table></div>`}</div>`;
+                                    }).join('')}
+                                </div>
+                            ` : '<div class="empty-state" style="padding: 20px;">Нет данных о маршрутах</div>'}
+                        </div>
+                    </div>
+                `;
+            }
+            return '';
+        }).join('');
         
-        // Добавляем обработчики для раскрытия по времени (основные заголовки)
+        // Обработчики для заголовков времени (раскрытие/скрытие) с правильным цветом
         document.querySelectorAll('.time-header').forEach(header => {
             const time = header.dataset.time;
+            if (!time) return;
             const content = document.getElementById(`tc-${time.replace(':', '')}`);
             if (content) {
-                header.onclick = (e) => {
+                // Клонируем, чтобы избежать дублирования обработчиков
+                const newHeader = header.cloneNode(true);
+                header.parentNode.replaceChild(newHeader, header);
+                newHeader.onclick = (e) => {
                     e.stopPropagation();
                     const isVisible = content.style.display === 'block';
                     content.style.display = isVisible ? 'none' : 'block';
@@ -366,31 +422,33 @@
             }
         });
         
-        // Обработчики для сводки (общая сводка) -> показываем детали по маршрутам
+        // Обработчики для сводки (только если они есть)
         document.querySelectorAll('.summary-block').forEach(summary => {
             const time = summary.dataset.time;
+            if (!time) return;
             const details = document.getElementById(`rd-${time.replace(':', '')}`);
             if (details) {
-                summary.onclick = (e) => {
+                const newSummary = summary.cloneNode(true);
+                summary.parentNode.replaceChild(newSummary, summary);
+                newSummary.onclick = (e) => {
                     e.stopPropagation();
                     if (details.style.display === 'none') {
                         details.style.display = 'block';
-                        summary.style.background = '#eef2f6';
+                        newSummary.style.background = '#eef2f6';
                     } else {
                         details.style.display = 'none';
-                        summary.style.background = '#f8f9fa';
+                        newSummary.style.background = '#f8f9fa';
                     }
                 };
             }
         });
         
-        // Сохраняем чекбоксы прибытия
+        // Обработчики чекбоксов
         document.querySelectorAll('.passenger-check').forEach(cb => {
             cb.onchange = () => saveCheckToStorage(cb.dataset.key, cb.checked);
         });
     }
     
-    // Простая защита от XSS
     function escapeHtml(str) {
         if (!str) return '';
         return str.replace(/[&<>]/g, function(m) {
@@ -398,12 +456,9 @@
             if (m === '<') return '&lt;';
             if (m === '>') return '&gt;';
             return m;
-        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-            return c;
         });
     }
     
-    // Обработка смены водителя
     document.getElementById('driverSelect').onchange = (e) => {
         currentDriver = e.target.value;
         selectedDate = null;
