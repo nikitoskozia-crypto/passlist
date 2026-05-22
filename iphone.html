@@ -132,8 +132,7 @@
 </div>
 
 <script>
-    // ВСТАВЬ СЮДА СВОЮ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT (ПОСЛЕ НОВОГО РАЗВЕРТЫВАНИЯ)
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxxpd3Mcj0jD1OC46GmAifBJkgSV-Uw3mXqROdfbIMk7id4jrzdpWKFelB9PCVj6zJY4Q/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbw36l-bcrQ4kv4x77xy2x1YaKaWq2JqTCxmuix8O7lswmZ3CDCRGMDcOj4NIJksstM4NA/exec';
     const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
     
     let allData = [];
@@ -178,7 +177,6 @@
         let parts = String(dateStr).split('.');
         if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
         
-        // Исправление для iOS: корректный парсинг дат формата YYYY-MM-DD
         let hyphenParts = String(dateStr).split('-');
         if (hyphenParts.length === 3) return new Date(hyphenParts[0], hyphenParts[1] - 1, hyphenParts[2]);
         
@@ -216,18 +214,27 @@
     
     function convertTime(rawTime) {
         if (!rawTime) return '';
-        if (typeof rawTime === 'string' && rawTime.match(/^\d{2}:\d{2}$/)) return rawTime;
+        let tStr = String(rawTime).trim();
+        // Если это полная дата-время ISO или строка с секундами, вырезаем строго ЧЧ:ММ
+        if (tStr.includes(':')) {
+            let parts = tStr.split(':');
+            if (parts[0].includes('T')) {
+                parts[0] = parts[0].split('T')[1];
+            }
+            let hh = parts[0].slice(-2);
+            let mm = parts[1].slice(0, 2);
+            return hh + ':' + mm;
+        }
         let t = new Date(rawTime);
         if (!isNaN(t.getTime())) {
             let hours = t.getHours(), minutes = t.getMinutes();
             return (hours < 10 ? '0' + hours : hours) + ':' + (minutes < 10 ? '0' + minutes : minutes);
         }
-        return String(rawTime);
+        return tStr;
     }
     
     async function loadData() {
         try {
-            // Защита от жесткого кеширования в Safari: добавляем случайный параметр к URL
             const noCacheUrl = API_URL + (API_URL.includes('?') ? '&' : '?') + '_nocache=' + Date.now();
             const response = await fetch(noCacheUrl);
             let data = await response.json();
@@ -279,7 +286,8 @@
         let filtered = getFilteredData().filter(item => item.date === date);
         const result = [];
         for (let time of TIME_ORDER) {
-            const itemsAtTime = filtered.filter(item => item.time === time);
+            // Безопасное сравнение времени: обрезаем до 5 символов (ЧЧ:ММ) с обеих сторон
+            const itemsAtTime = filtered.filter(item => item.time.substring(0, 5) === time.substring(0, 5));
             if (itemsAtTime.length > 0) {
                 const routesMap = new Map();
                 itemsAtTime.forEach(item => {
@@ -300,7 +308,7 @@
         let filtered = getFilteredData().filter(item => item.date === date);
         const result = [];
         for (let time of TIME_ORDER) {
-            const itemsAtTime = filtered.filter(item => item.time === time);
+            const itemsAtTime = filtered.filter(item => item.time.substring(0, 5) === time.substring(0, 5));
             if (itemsAtTime.length > 0) {
                 const routesMap = new Map();
                 itemsAtTime.forEach(item => {
@@ -317,7 +325,7 @@
     
     function getPassengersByDateTime(date, time, route) {
         let filtered = getFilteredData();
-        return filtered.filter(item => item.date === date && item.time === time && item.route === route);
+        return filtered.filter(item => item.date === date && item.time.substring(0, 5) === time.substring(0, 5) && item.route === route);
     }
     
     function updateUI() {
