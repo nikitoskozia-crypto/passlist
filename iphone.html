@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="theme-color" content="#1e3a5f">
+    <title>Владелец | Учёт пассажиров</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; background: #f0f2f5; color: #1a1a1a; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { font-size: 28px; margin-bottom: 8px; color: #1e3a5f; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .back-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #1e3a5f; padding: 5px 10px; border-radius: 40px; min-width: 44px; min-height: 44px; }
+        .back-btn:active { background: #e0e7f0; }
+        .subtitle { color: #666; margin-bottom: 20px; border-left: 4px solid #1e3a5f; padding-left: 15px; font-size: 14px; }
+        
+        .driver-selector {
+            background: white;
+            border-radius: 20px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .driver-selector label { font-weight: 600; color: #1e3a5f; font-size: 15px; }
+        .driver-selector select { 
+            padding: 10px 16px; 
+            border-radius: 40px; 
+            border: 1px solid #ddd; 
+            font-size: 15px; 
+            background: white;
+            min-width: 180px;
+        }
+        .driver-note { font-size: 13px; color: #e67e22; margin-left: auto; }
+        
+        .dates-scroll { display: flex; gap: 12px; overflow-x: auto; padding: 10px 0 20px 0; margin-bottom: 10px; -webkit-overflow-scrolling: touch; }
+        .date-chip { background: white; border: 1px solid #ddd; border-radius: 40px; padding: 12px 20px; font-size: 15px; font-weight: 500; cursor: pointer; white-space: nowrap; flex-shrink: 0; min-height: 48px; display: flex; align-items: center; gap: 8px; }
+        .date-chip:active { transform: scale(0.97); background: #eef2f6; }
+        .date-chip.active { background: #1e3a5f; color: white; border-color: #1e3a5f; }
+        .date-chip .date-seats { font-size: 11px; opacity: 0.8; margin-left: 5px; }
+        
+        .time-group { background: white; border-radius: 20px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .time-header { background: #1e3a5f; color: white; padding: 16px 24px; font-weight: 700; font-size: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 60px; }
+        .time-header:active { background: #2c4a6e; }
+        .time-header .time-seats { font-size: 16px; background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 40px; }
+        .time-content { padding: 0; display: none; }
+        
+        .summary-block { background: #f8f9fa; padding: 16px 24px; cursor: pointer; border-bottom: 1px solid #eef2f6; display: flex; justify-content: space-between; align-items: center; }
+        .summary-block:active { background: #eef2f6; }
+        .summary-title { font-weight: 700; font-size: 17px; color: #1e3a5f; }
+        .summary-seats { background: #e0e7f0; padding: 6px 16px; border-radius: 40px; font-size: 14px; }
+        
+        .route-detail { border-bottom: 1px solid #eef2f6; padding: 20px 24px; }
+        .route-title { font-weight: 700; font-size: 18px; color: #1e3a5f; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #1e3a5f; display: inline-block; }
+        .route-total { font-size: 16px; color: #003cff; font-weight: 600; margin-left: 15px; display: inline-block; }
+        
+        .table-wrapper { display: block; overflow-x: auto; margin-top: 10px; border-radius: 16px; -webkit-overflow-scrolling: touch; }
+        .passengers-table { width: 100%; border-collapse: collapse; background: white; min-width: 600px; font-size: 14px; }
+        .passengers-table th, .passengers-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #eee; }
+        .passengers-table th { background: #f8f9fa; font-weight: 600; color: #555; font-size: 13px; }
+        
+        .payment-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .payment-cash {
+            background: #d4edda;
+            color: #04701d;
+            border: 1px solid #c3e6cb;
+        }
+        .payment-cashless {
+            background: #e8d9ff;
+            color: #2b0367;
+            border: 1px solid #d1c4e9;
+        }
+        
+        .empty-state { text-align: center; padding: 50px; background: white; border-radius: 20px; color: #999; font-size: 15px; }
+        .loading { text-align: center; padding: 50px; color: #666; font-size: 15px; }
+        .info-note { background: #e8f4fd; border-radius: 12px; padding: 12px 18px; margin-top: 20px; font-size: 13px; color: #1e3a5f; }
+        .check-cell { text-align: center !important; width: 50px; }
+        .passenger-check { width: 22px; height: 22px; cursor: pointer; transform: scale(1); }
+        .zero-badge { background: rgba(255,255,255,0.2); }
+        
+        @media (max-width: 700px) {
+            body { padding: 12px; }
+            .container { max-width: 100%; }
+            h1 { font-size: 22px; }
+            .route-detail { padding: 14px 18px; }
+            .time-header { padding: 12px 18px; font-size: 17px; min-height: 52px; }
+            .time-header .time-seats { font-size: 13px; padding: 4px 12px; }
+            .date-chip { padding: 8px 16px; font-size: 13px; min-height: 44px; }
+            .summary-block { padding: 12px 18px; }
+            .summary-title { font-size: 15px; }
+            .route-title { font-size: 16px; }
+            .passengers-table { font-size: 13px; min-width: 550px; }
+            .passengers-table th, .passengers-table td { padding: 10px 12px; }
+            .driver-selector { padding: 12px 16px; }
+            .driver-selector select { padding: 8px 12px; font-size: 14px; min-width: 140px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 10px;">
+        <h1>
+            <button class="back-btn" id="backBtn" style="display: none;">←</button>
+            <span id="pageTitle">👑 Учёт пассажиров — Владелец</span>
+        </h1>
+    </div>
+    
+    <div class="driver-selector">
+        <label>👨‍✈️ Просмотр от:</label>
+        <select id="driverSelect">
+            <option value="all">👑 Владелец (все рейсы)</option>
+            <option value="Алексей Б.">🚛 Алексей Б.</option>
+            <option value="Андрей К.">🚛 Андрей К.</option>
+            <option value="Валентин К.">🚛 Валентин К.</option>
+        </select>
+        <div class="driver-note" id="driverNote">👑 Все рейсы</div>
+    </div>
+    
+    <div class="subtitle" id="subtitle">Актуальные рейсы на ближайшие дни</div>
+    <div id="mainContent"><div class="loading">Загрузка данных...</div></div>
+    <div class="info-note">Нажмите на время → общая сводка → таблицы пассажиров. Чтобы назначить водителя — отредактируйте колонку "Водитель" в Google Таблице.</div>
+</div>
+
+<script>
+    // ВСТАВЬ СЮДА СВОЮ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT (ПОСЛЕ НОВОГО РАЗВЕРТЫВАНИЯ)
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxxpd3Mcj0jD1OC46GmAifBJkgSV-Uw3mXqROdfbIMk7id4jrzdpWKFelB9PCVj6zJY4Q/exec';
+    const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
+    
+    let allData = [];
+    let currentView = 'dates';
+    let selectedDate = null;
+    let upcomingDates = [];
+    let arrivalChecks = {};
+    let currentDriver = 'all';
+    
+    const STORAGE_CHECKS_KEY = 'arrivalChecks';
+    
+    function loadChecksFromStorage() {
+        const saved = localStorage.getItem(STORAGE_CHECKS_KEY);
+        if (saved) arrivalChecks = JSON.parse(saved);
+    }
+    
+    function saveCheckToStorage(key, isChecked) {
+        if (isChecked) arrivalChecks[key] = true;
+        else delete arrivalChecks[key];
+        localStorage.setItem(STORAGE_CHECKS_KEY, JSON.stringify(arrivalChecks));
+    }
+    
+    function formatPayment(payment) {
+        if (!payment || payment === '') return '<span class="payment-badge payment-cashless">Безнал</span>';
+        const lowerPayment = payment.toLowerCase();
+        if (lowerPayment.includes('нал') || lowerPayment.includes('налич') || /^\d/.test(payment)) {
+            const moneyMatch = payment.match(/\d+/);
+            if (moneyMatch) return `<span class="payment-badge payment-cash">Нал ${moneyMatch[0]} ₽</span>`;
+            return `<span class="payment-badge payment-cash">Наличные</span>`;
+        }
+        if (lowerPayment.includes('безнал') || lowerPayment === 'без') return `<span class="payment-badge payment-cashless">Безнал</span>`;
+        return `<span class="payment-badge payment-cashless">${payment}</span>`;
+    }
+    
+    function filterByDriver(data) {
+        if (currentDriver === 'all') return data;
+        return data.filter(item => item.driver === currentDriver);
+    }
+    
+    function parseDate(dateStr) {
+        if (!dateStr) return new Date();
+        let parts = String(dateStr).split('.');
+        if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
+        
+        // Исправление для iOS: корректный парсинг дат формата YYYY-MM-DD
+        let hyphenParts = String(dateStr).split('-');
+        if (hyphenParts.length === 3) return new Date(hyphenParts[0], hyphenParts[1] - 1, hyphenParts[2]);
+        
+        return new Date(dateStr);
+    }
+    
+    function isDateUpcoming(dateStr) {
+        let today = new Date();
+        today.setHours(0, 0, 0, 0);
+        let date = parseDate(dateStr);
+        date.setHours(0, 0, 0, 0);
+        return date >= today;
+    }
+    
+    function getUpcomingDates(datesArray, limit = 7) {
+        let futureDates = datesArray.filter(date => isDateUpcoming(date));
+        futureDates.sort((a,b) => parseDate(a) - parseDate(b));
+        return futureDates.slice(0, limit);
+    }
+    
+    function convertDate(rawDate) {
+        if (!rawDate) return '';
+        if (typeof rawDate === 'string' && rawDate.match(/^\d{2}\.\d{2}\.\d{4}$/)) return rawDate;
+        let d = new Date(rawDate);
+        if (!isNaN(d.getTime())) {
+            let day = d.getDate(), month = d.getMonth() + 1, year = d.getFullYear();
+            return (day < 10 ? '0' + day : day) + '.' + (month < 10 ? '0' + month : month) + '.' + year;
+        }
+        if (typeof rawDate === 'string' && rawDate.includes('-')) {
+            let parts = rawDate.split('-');
+            if (parts.length === 3) return parts[2] + '.' + parts[1] + '.' + parts[0];
+        }
+        return String(rawDate);
+    }
+    
+    function convertTime(rawTime) {
+        if (!rawTime) return '';
+        if (typeof rawTime === 'string' && rawTime.match(/^\d{2}:\d{2}$/)) return rawTime;
+        let t = new Date(rawTime);
+        if (!isNaN(t.getTime())) {
+            let hours = t.getHours(), minutes = t.getMinutes();
+            return (hours < 10 ? '0' + hours : hours) + ':' + (minutes < 10 ? '0' + minutes : minutes);
+        }
+        return String(rawTime);
+    }
+    
+    async function loadData() {
+        try {
+            // Защита от жесткого кеширования в Safari: добавляем случайный параметр к URL
+            const noCacheUrl = API_URL + (API_URL.includes('?') ? '&' : '?') + '_nocache=' + Date.now();
+            const response = await fetch(noCacheUrl);
+            let data = await response.json();
+            
+            if (data.error) {
+                console.error('Ошибка на стороне скрипта:', data.error);
+                document.getElementById('mainContent').innerHTML = `<div class="empty-state">Ошибка базы данных: ${data.error}</div>`;
+                return;
+            }
+            
+            allData = data.map(item => {
+                let seatsCount = item.seats ? Number(item.seats) : 1;
+                if (isNaN(seatsCount)) seatsCount = 1;
+                if (seatsCount === 0) return null;
+                return {
+                    date: convertDate(item.date),
+                    route: item.route,
+                    time: convertTime(item.time),
+                    name: item.name || 'Имя не указано',
+                    phone: item.phone || '—',
+                    seats: seatsCount,
+                    driver: item.driver || 'Не назначен',
+                    payment: item.payment || ''
+                };
+            }).filter(item => item !== null && item.date && item.route && item.time);
+            renderCurrentView();
+        } catch (error) {
+            console.error('Ошибка загрузки:', error);
+            document.getElementById('mainContent').innerHTML = '<div class="empty-state">Ошибка загрузки данных. Проверьте интернет или ссылку API</div>';
+        }
+    }
+    
+    function getFilteredData() {
+        return filterByDriver(allData);
+    }
+    
+    function getUniqueDates() {
+        let filtered = getFilteredData();
+        let dates = [...new Set(filtered.map(item => item.date))];
+        return getUpcomingDates(dates, 7);
+    }
+    
+    function getTotalSeatsForDate(date) {
+        let filtered = getFilteredData();
+        return filtered.filter(item => item.date === date).reduce((sum, item) => sum + item.seats, 0);
+    }
+    
+    function getAllTimesWithRoutesForOwner(date) {
+        let filtered = getFilteredData().filter(item => item.date === date);
+        const result = [];
+        for (let time of TIME_ORDER) {
+            const itemsAtTime = filtered.filter(item => item.time === time);
+            if (itemsAtTime.length > 0) {
+                const routesMap = new Map();
+                itemsAtTime.forEach(item => {
+                    let currentSeats = routesMap.get(item.route) || 0;
+                    routesMap.set(item.route, currentSeats + item.seats);
+                });
+                const routes = Object.fromEntries(routesMap);
+                const totalSeats = Object.values(routes).reduce((a,b) => a + b, 0);
+                result.push({ time: time, routes: routes, totalSeats: totalSeats, isEmpty: false });
+            } else {
+                result.push({ time: time, routes: {}, totalSeats: 0, isEmpty: true });
+            }
+        }
+        return result;
+    }
+    
+    function getNonEmptyTimesWithRoutesForDriver(date) {
+        let filtered = getFilteredData().filter(item => item.date === date);
+        const result = [];
+        for (let time of TIME_ORDER) {
+            const itemsAtTime = filtered.filter(item => item.time === time);
+            if (itemsAtTime.length > 0) {
+                const routesMap = new Map();
+                itemsAtTime.forEach(item => {
+                    let currentSeats = routesMap.get(item.route) || 0;
+                    routesMap.set(item.route, currentSeats + item.seats);
+                });
+                const routes = Object.fromEntries(routesMap);
+                const totalSeats = Object.values(routes).reduce((a,b) => a + b, 0);
+                result.push({ time: time, routes: routes, totalSeats: totalSeats, isEmpty: false });
+            }
+        }
+        return result;
+    }
+    
+    function getPassengersByDateTime(date, time, route) {
+        let filtered = getFilteredData();
+        return filtered.filter(item => item.date === date && item.time === time && item.route === route);
+    }
+    
+    function updateUI() {
+        const subtitle = document.getElementById('subtitle');
+        const driverNote = document.getElementById('driverNote');
+        if (currentDriver === 'all') {
+            subtitle.innerHTML = 'Ближайшие рейсы:';
+            driverNote.innerHTML = '👑 Все рейсы';
+        } else {
+            subtitle.innerHTML = `Рейсы для ${currentDriver}`;
+            driverNote.innerHTML = `🚛 Показываются только времена с пассажирами`;
+        }
+    }
+    
+    function renderCurrentView() {
+        if (currentView === 'dates') renderDatesView();
+        else if (currentView === 'times') renderTimesView();
+        const backBtn = document.getElementById('backBtn');
+        backBtn.style.display = currentView === 'dates' ? 'none' : 'inline-block';
+        updateUI();
+    }
+    
+    function renderDatesView() {
+        const container = document.getElementById('mainContent');
+        const dates = getUniqueDates();
+        if (dates.length === 0) {
+            container.innerHTML = '<div class="empty-state">Нет доступных рейсов</div>';
+            return;
+        }
+        container.innerHTML = `<div class="dates-scroll">${dates.map(date => `<div class="date-chip" data-date="${date}">${date}<span class="date-seats">${getTotalSeatsForDate(date)} м</span></div>`).join('')}</div><div id="timesContainer"></div>`;
+        
+        document.querySelectorAll('.date-chip').forEach(chip => {
+            chip.onclick = () => {
+                selectedDate = chip.dataset.date;
+                document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                renderTimesView();
+                currentView = 'times';
+                renderCurrentView();
+            };
+        });
+        
+        if (selectedDate && dates.includes(selectedDate)) {
+            const activeChip = document.querySelector(`.date-chip[data-date="${selectedDate}"]`);
+            if (activeChip) activeChip.click();
+        } else if (dates.length > 0) {
+            document.querySelector('.date-chip').click();
+        }
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    function renderTimesView() {
+        const container = document.getElementById('timesContainer') || document.getElementById('mainContent');
+        
+        if (!selectedDate) {
+            container.innerHTML = '<div class="empty-state">Выберите дату</div>';
+            return;
+        }
+        
+        let timeSlots = [];
+        const isOwner = (currentDriver === 'all');
+        
+        if (isOwner) {
+            timeSlots = getAllTimesWithRoutesForOwner(selectedDate);
+            if (timeSlots.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет данных по этому дню</div>';
+                return;
+            }
+        } else {
+            timeSlots = getNonEmptyTimesWithRoutesForDriver(selectedDate);
+            if (timeSlots.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет пассажиров на эту дату у этого водителя</div>';
+                return;
+            }
+        }
+        
+        container.innerHTML = timeSlots.map(slot => {
+            if (slot.isEmpty && isOwner) {
+                return `
+                    <div class="time-group">
+                        <div class="time-header" data-time="${slot.time}">
+                            <span>${slot.time}</span>
+                            <span class="time-seats zero-badge">0 мест</span>
+                        </div>
+                        <div class="time-content" id="tc-${slot.time.replace(':', '')}" style="display:none">
+                            <div class="empty-state" style="padding: 25px; margin: 10px;">✈️ Нет пассажиров в это время</div>
+                        </div>
+                    </div>
+                `;
+            } 
+            else if (!slot.isEmpty) {
+                const hasRoutes = Object.keys(slot.routes).length > 0;
+                return `
+                    <div class="time-group">
+                        <div class="time-header" data-time="${slot.time}">
+                            <span>${slot.time}</span>
+                            <span class="time-seats">${slot.totalSeats} мест</span>
+                        </div>
+                        <div class="time-content" id="tc-${slot.time.replace(':', '')}" style="display:none">
+                            ${hasRoutes ? `
+                                <div class="summary-block" data-time="${slot.time}">
+                                    <span class="summary-title">Общая сводка</span>
+                                    <span class="summary-seats">${slot.totalSeats} мест</span>
+                                </div>
+                                <div class="routes-details" id="rd-${slot.time.replace(':', '')}" style="display:none">
+                                    ${Object.keys(slot.routes).map(route => {
+                                        const passengers = getPassengersByDateTime(selectedDate, slot.time, route);
+                                        const totalSeats = passengers.reduce((s,p) => s + p.seats, 0);
+                                        return `<div class="route-detail"><div><span class="route-title">${escapeHtml(route.replace('-', ' → '))}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО пассажира</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th><tr></thead><tbody>${passengers.map((p, idx) => {
+                                            const checkKey = `${selectedDate}_${route}_${slot.time}_${idx}`;
+                                            return `<tr>
+                                                <td style="text-align: center;">${idx+1}
+                                                <td><strong>${escapeHtml(p.name)}</strong>
+                                                <td>${escapeHtml(p.phone)}
+                                                <td>${p.seats}
+                                                <td class="payment-cell">${formatPayment(p.payment)}
+                                                <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}>
+                                            </tr>`;
+                                        }).join('')}</tbody></table></div>`}</div>`;
+                                    }).join('')}
+                                </div>
+                            ` : '<div class="empty-state" style="padding: 25px;">Нет данных о маршрутах</div>'}
+                        </div>
+                    </div>
+                `;
+            }
+            return '';
+        }).join('');
+        
+        document.querySelectorAll('.time-header').forEach(header => {
+            const time = header.dataset.time;
+            if (!time) return;
+            const content = document.getElementById(`tc-${time.replace(':', '')}`);
+            if (content) {
+                const newHeader = header.cloneNode(true);
+                header.parentNode.replaceChild(newHeader, header);
+                newHeader.onclick = (e) => {
+                    e.stopPropagation();
+                    const isVisible = content.style.display === 'block';
+                    content.style.display = isVisible ? 'none' : 'block';
+                };
+            }
+        });
+        
+        document.querySelectorAll('.summary-block').forEach(summary => {
+            const time = summary.dataset.time;
+            if (!time) return;
+            const details = document.getElementById(`rd-${time.replace(':', '')}`);
+            if (details) {
+                const newSummary = summary.cloneNode(true);
+                summary.parentNode.replaceChild(newSummary, summary);
+                newSummary.onclick = (e) => {
+                    e.stopPropagation();
+                    if (details.style.display === 'none') {
+                        details.style.display = 'block';
+                        newSummary.style.background = '#eef2f6';
+                    } else {
+                        details.style.display = 'none';
+                        newSummary.style.background = '#f8f9fa';
+                    }
+                };
+            }
+        });
+        
+        document.querySelectorAll('.passenger-check').forEach(cb => {
+            cb.onchange = () => saveCheckToStorage(cb.dataset.key, cb.checked);
+        });
+    }
+    
+    document.getElementById('driverSelect').onchange = (e) => {
+        currentDriver = e.target.value;
+        selectedDate = null;
+        currentView = 'dates';
+        renderCurrentView();
+    };
+    
+    document.getElementById('backBtn').onclick = () => {
+        if (currentView === 'times') {
+            currentView = 'dates';
+            selectedDate = null;
+            renderCurrentView();
+        }
+    };
+    
+    loadChecksFromStorage();
+    loadData();
+</script>
+</body>
+</html>
