@@ -11,6 +11,7 @@
             --primary: #1e3a5f;
             --primary-light: #2c4a6e;
             --accent: #3b82f6;
+            --accent-light: #eef2ff;
             --text-dark: #0f172a;
             --text-muted: #64748b;
             --card-bg: #ffffff;
@@ -25,64 +26,33 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
             background: var(--bg-main); 
             color: var(--text-dark); 
-            padding: 24px 16px;
+            padding: 16px;
             line-height: 1.5;
         }
 
         .container { max-width: 1000px; margin: 0 auto; }
         
         /* Шапка */
-        header {
-            margin-bottom: 24px;
-        }
-        h1 { 
-            font-size: 24px; 
-            font-weight: 800;
-            color: var(--primary); 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-        }
-        .back-btn { 
-            background: var(--card-bg); 
-            border: 1px solid var(--border-color); 
-            font-size: 20px; 
-            cursor: pointer; 
-            color: var(--primary); 
-            width: 40px;
-            height: 40px;
-            border-radius: 12px; 
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            transition: all 0.2s ease;
-        }
-        .back-btn:active { transform: scale(0.95); background: var(--bg-main); }
-        
-        .subtitle { 
-            color: var(--text-muted); 
-            margin-top: 6px;
-            font-size: 14px; 
-            font-weight: 400;
-        }
+        header { margin-bottom: 20px; }
+        h1 { font-size: 22px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
+        .subtitle { color: var(--text-muted); margin-top: 4px; font-size: 14px; }
         
         /* Селектор водителя */
         .driver-selector {
             background: var(--card-bg);
             border-radius: 16px;
-            padding: 14px 20px;
-            margin-bottom: 24px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 12px;
             flex-wrap: wrap;
             box-shadow: 0 4px 12px rgba(30, 58, 95, 0.04);
-            border: 1px solid rgba(30, 58, 95, 0.02);
+            border: 1px solid var(--border-color);
         }
         .driver-selector label { font-weight: 600; color: var(--primary); font-size: 14px; }
         .driver-selector select { 
-            padding: 8px 16px; 
+            padding: 8px 12px; 
             border-radius: 10px; 
             border: 1px solid var(--border-color); 
             font-size: 14px; 
@@ -91,48 +61,50 @@
             color: var(--text-dark);
             outline: none;
             cursor: pointer;
-            min-width: 200px;
+            flex-grow: 1;
         }
-        .driver-note { font-size: 13px; color: #d97706; font-weight: 500; margin-left: auto; }
-        
-        /* Скролл дат */
-        .dates-scroll { 
+        .driver-note { font-size: 12px; font-weight: 700; color: #d97706; background: #fffbeb; padding: 4px 10px; border-radius: 8px; white-space: nowrap; margin-left: auto; }
+
+        /* Фирменный горизонтальный календарь */
+        .calendar-slider { 
             display: flex; 
             gap: 10px; 
             overflow-x: auto; 
             padding: 4px 4px 16px 4px; 
-            margin-bottom: 8px; 
+            margin-bottom: 16px; 
             -webkit-overflow-scrolling: touch; 
             scrollbar-width: none;
         }
-        .dates-scroll::-webkit-scrollbar { display: none; }
+        .calendar-slider::-webkit-scrollbar { display: none; }
         
-        .date-chip { 
+        .calendar-card { 
             background: var(--card-bg); 
             border: 1px solid var(--border-color); 
             border-radius: 14px; 
-            padding: 10px 18px; 
-            font-size: 14px; 
-            font-weight: 600; 
+            padding: 12px; 
+            min-width: 76px;
+            height: 80px;
             cursor: pointer; 
-            white-space: nowrap; 
-            flex-shrink: 0; 
             display: flex; 
             flex-direction: column;
             align-items: center; 
-            gap: 2px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .date-chip:active { transform: scale(0.95); }
-        .date-chip.active { 
+        .calendar-card .day-name { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); }
+        .calendar-card .day-num { font-size: 20px; font-weight: 800; color: var(--primary); }
+        .calendar-card .day-seats { font-size: 10px; font-weight: 700; color: var(--accent); background: var(--accent-light); padding: 2px 6px; border-radius: 6px; width: 100%; text-align: center; }
+        
+        .calendar-card.active { 
             background: var(--primary); 
-            color: white; 
-            border-color: var(--primary); 
-            box-shadow: 0 4px 12px rgba(30, 58, 95, 0.2);
+            border-color: var(--primary);
+            box-shadow: 0 10px 20px rgba(30, 58, 95, 0.15);
+            transform: translateY(-2px);
         }
-        .date-chip .date-seats { font-size: 11px; font-weight: 500; opacity: 0.7; }
-        .date-chip.active .date-seats { opacity: 0.9; color: #93c5fd; }
+        .calendar-card.active .day-name { color: rgba(255,255,255,0.6); }
+        .calendar-card.active .day-num { color: #ffffff; }
+        .calendar-card.active .day-seats { color: #ffffff; background: rgba(255,255,255,0.15); }
         
         /* Временные группы */
         .time-group { 
@@ -140,9 +112,8 @@
             border-radius: 16px; 
             margin-bottom: 12px; 
             overflow: hidden; 
-            box-shadow: 0 4px 6px rgba(30, 58, 95, 0.02), 0 1px 3px rgba(0,0,0,0.02); 
+            box-shadow: 0 4px 6px rgba(30, 58, 95, 0.02); 
             border: 1px solid var(--border-color);
-            transition: transform 0.2s ease;
         }
         
         .time-header { 
@@ -187,7 +158,6 @@
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            font-transition: background 0.2s;
         }
         .summary-block:active { background: #e2e8f0; }
         .summary-title { font-weight: 700; font-size: 15px; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
@@ -276,9 +246,6 @@
         .info-note { background: #eff6ff; border-radius: 12px; padding: 14px 18px; margin-top: 24px; font-size: 13px; color: var(--primary); border-left: 4px solid var(--accent); font-weight: 500; }
         
         @media (max-width: 700px) {
-            body { padding: 16px 12px; }
-            h1 { font-size: 20px; }
-            .driver-selector { padding: 12px 16px; gap: 8px; }
             .driver-selector select { min-width: 100%; }
             .driver-note { margin-left: 0; margin-top: 4px; }
             .time-header { padding: 14px 16px; font-size: 16px; }
@@ -291,7 +258,6 @@
 <div class="container">
     <header>
         <h1>
-            <button class="back-btn" id="backBtn" style="display: none;">←</button>
             <span id="pageTitle">👑 Учёт пассажиров</span>
         </h1>
         <div class="subtitle" id="subtitle">Актуальные рейсы на ближайшие дни</div>
@@ -308,17 +274,17 @@
         <div class="driver-note" id="driverNote">👑 Все рейсы</div>
     </div>
     
+    <div id="calendarWrapper"></div>
     <div id="mainContent"><div class="loading">Получение актуальных данных...</div></div>
     <div class="info-note">Нажмите на время → общая сводка → таблицы пассажиров. Назначение водителей происходит через редактирование исходной Google Таблицы.</div>
 </div>
 
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxxpd3Mcj0jD1OC46GmAifBJkgSV-Uw3mXqROdfbIMk7id4jrzdpWKFelB9PCVj6zJY4Q/exec
-        ';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxxpd3Mcj0jD1OC46GmAifBJkgSV-Uw3mXqROdfbIMk7id4jrzdpWKFelB9PCVj6zJY4Q/exec';
     const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
+    const WEEK_DAYS = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
     
     let allData = [];
-    let currentView = 'dates';
     let selectedDate = null;
     let arrivalChecks = {};
     let currentDriver = 'all';
@@ -375,6 +341,11 @@
         return futureDates.slice(0, limit);
     }
     
+    function getDayName(dateStr) {
+        let d = parseDate(dateStr);
+        return isNaN(d.getTime()) ? '' : WEEK_DAYS[d.getDay()];
+    }
+    
     function convertDate(rawDate) {
         if (!rawDate) return '';
         if (typeof rawDate === 'string' && rawDate.match(/^\d{2}\.\d{2}\.\d{4}$/)) return rawDate;
@@ -417,7 +388,8 @@
                     payment: item.payment || ''
                 };
             }).filter(item => item !== null && item.date && item.route && item.time);
-            renderCurrentView();
+            
+            renderCalendar();
         } catch (error) {
             console.error('Ошибка загрузки:', error);
             document.getElementById('mainContent').innerHTML = '<div class="empty-state">Ошибка загрузки данных. Проверьте интернет или ссылку API</div>';
@@ -427,6 +399,45 @@
     function getFilteredData() { return filterByDriver(allData); }
     function getUniqueDates() { return getUpcomingDates([...new Set(getFilteredData().map(item => item.date))], 7); }
     function getTotalSeatsForDate(date) { return getFilteredData().filter(item => item.date === date).reduce((sum, item) => sum + item.seats, 0); }
+    
+    function renderCalendar() {
+        const container = document.getElementById('calendarWrapper');
+        const dates = getUniqueDates();
+        
+        if (dates.length === 0) {
+            container.innerHTML = '';
+            document.getElementById('mainContent').innerHTML = '<div class="empty-state">Нет запланированных рейсов в системе</div>';
+            return;
+        }
+        
+        container.innerHTML = `<div class="calendar-slider">${dates.map(date => {
+            let totalSeats = getTotalSeatsForDate(date);
+            let dayNum = date.split('.')[0];
+            let dayName = getDayName(date);
+            return `
+                <div class="calendar-card" data-date="${date}">
+                    <span class="day-name">${dayName}</span>
+                    <span class="day-num">${dayNum}</span>
+                    <span class="day-seats">${totalSeats}м</span>
+                </div>
+            `;
+        }).join('')}</div>`;
+        
+        document.querySelectorAll('.calendar-card').forEach(card => {
+            card.onclick = () => {
+                selectedDate = card.dataset.date;
+                document.querySelectorAll('.calendar-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                renderTimesView();
+            };
+        });
+        
+        if (selectedDate && dates.includes(selectedDate)) {
+            document.querySelector(`.calendar-card[data-date="${selectedDate}"]`)?.click();
+        } else if (dates.length > 0) {
+            document.querySelector('.calendar-card').click();
+        }
+    }
     
     function getAllTimesWithRoutesForOwner(date) {
         let filtered = getFilteredData().filter(item => item.date === date);
@@ -470,46 +481,8 @@
         }
     }
     
-    function renderCurrentView() {
-        if (currentView === 'dates') renderDatesView();
-        else if (currentView === 'times') renderTimesView();
-        document.getElementById('backBtn').style.display = currentView === 'dates' ? 'none' : 'inline-block';
-        updateUI();
-    }
-    
-    function renderDatesView() {
-        const container = document.getElementById('mainContent');
-        const dates = getUniqueDates();
-        if (dates.length === 0) {
-            container.innerHTML = '<div class="empty-state">Нет запланированных рейсов в системе</div>';
-            return;
-        }
-        container.innerHTML = `<div class="dates-scroll">${dates.map(date => `<div class="date-chip" data-date="${date}"><span>${date.split('.')[0]}.${date.split('.')[1]}</span><span class="date-seats">${getTotalSeatsForDate(date)} мест</span></div>`).join('')}</div><div id="timesContainer"></div>`;
-        
-        document.querySelectorAll('.date-chip').forEach(chip => {
-            chip.onclick = () => {
-                selectedDate = chip.dataset.date;
-                document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
-                chip.classList.add('active');
-                renderTimesView();
-                currentView = 'times';
-                renderCurrentView();
-            };
-        });
-        
-        if (selectedDate && dates.includes(selectedDate)) {
-            document.querySelector(`.date-chip[data-date="${selectedDate}"]`)?.click();
-        } else if (dates.length > 0) {
-            document.querySelector('.date-chip').click();
-        }
-    }
-    
-    function escapeHtml(str) {
-        return (str || '').replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
-    }
-    
     function renderTimesView() {
-        const container = document.getElementById('timesContainer') || document.getElementById('mainContent');
+        const container = document.getElementById('mainContent');
         if (!selectedDate) return;
         
         const isOwner = (currentDriver === 'all');
@@ -608,21 +581,14 @@
         document.querySelectorAll('.passenger-check').forEach(cb => {
             cb.onchange = () => saveCheckToStorage(cb.dataset.key, cb.checked);
         });
+        
+        updateUI();
     }
     
     document.getElementById('driverSelect').onchange = (e) => {
         currentDriver = e.target.value;
         selectedDate = null;
-        currentView = 'dates';
-        renderCurrentView();
-    };
-    
-    document.getElementById('backBtn').onclick = () => {
-        if (currentView === 'times') {
-            currentView = 'dates';
-            selectedDate = null;
-            renderCurrentView();
-        }
+        renderCalendar();
     };
     
     loadChecksFromStorage();
