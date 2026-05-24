@@ -28,7 +28,6 @@
         
         .summary-block { background: #f8f9fa; padding: 14px 18px; cursor: pointer; border-bottom: 1px solid #eef2f6; display: flex; justify-content: space-between; align-items: center; }
         .summary-block:active { background: #eef2f6; }
-        .summary-block:active { background: #eef2f6; }
         .summary-title { font-weight: 600; font-size: 15px; color: #1e3a5f; }
         .summary-seats { background: #e0e7f0; padding: 4px 12px; border-radius: 40px; font-size: 13px; }
         
@@ -72,7 +71,7 @@
     
     // ========== НАСТРОЙКИ ДЛЯ ВОДИТЕЛЯ ==========
     const MY_DRIVER_NAME = 'Владимир Л.';
-    let currentDriver = MY_DRIVER_NAME; // Синхронизировано со вторым скриптом
+    let currentDriver = MY_DRIVER_NAME; 
     const STORAGE_CHECKS_KEY = 'arrivalChecks_vladimir';
     // ===========================================
     
@@ -81,7 +80,6 @@
     let selectedDate = null;
     let arrivalChecks = {};
     
-    // Безопасная функция логирования для отладки
     function logDebug(...args) {
         console.log('[DEBUG]', ...args);
     }
@@ -114,14 +112,12 @@
         return data.filter(item => item.driver === currentDriver);
     }
     
-    // Исправлено для iOS: Парсинг строки формата DD.MM.YYYY без вызова new Date("строка")
     function parseDate(dateStr) {
         if (!dateStr || typeof dateStr !== 'string') return new Date();
         let parts = dateStr.split('.');
         if (parts.length === 3) {
             return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
         }
-        // Если формат YYYY-MM-DD
         parts = dateStr.split('-');
         if (parts.length === 3) {
             return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
@@ -143,12 +139,10 @@
         return futureDates.slice(0, limit);
     }
     
-    // Исправлено для iOS: Безопасное приведение любого типа даты из Google Таблиц к DD.MM.YYYY
     function convertDate(rawDate) {
         if (!rawDate) return '';
         if (typeof rawDate === 'string' && rawDate.match(/^\d{2}\.\d{2}\.\d{4}$/)) return rawDate;
         
-        // Если пришла ISO строка с дефисами: YYYY-MM-DD...
         if (typeof rawDate === 'string' && rawDate.includes('-')) {
             let parts = rawDate.split('T')[0].split('-');
             if (parts.length === 3) return parts[2] + '.' + parts[1] + '.' + parts[0];
@@ -162,45 +156,34 @@
         return String(rawDate);
     }
     
-    // Исправлено для iOS: Безопасная обработка времени без падений парсера Safari
     function convertTime(rawTime) {
         if (!rawTime) return '';
         if (typeof rawTime === 'string') {
-            // Если формат уже HH:MM или содержит его в начале
-            let match = rawTime.match(/^(\d{2}):(\d{2})/);
+            let match = rawTime.match(/(\d{2}):(\d{2})/);
             if (match) return match[1] + ':' + match[2];
             
-            // Если это ISO дата-время
             if (rawTime.includes('T')) {
                 let timePart = rawTime.split('T')[1];
                 let tParts = timePart.split(':');
-                if (tParts.length >= 2) return tParts[0] + ':' + tParts[1];
+                if (tParts.length >= 2) return tParts[0].padStart(2, '0') + ':' + tParts[1].padStart(2, '0');
             }
         }
         let t = new Date(rawTime);
         if (!isNaN(t.getTime())) {
             let hours = t.getHours(), minutes = t.getMinutes();
-            return (hours < 10 ? '0' + hours : hours) + ':' + (minutes < 10 ? '0' + minutes : minutes);
+            return String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
         }
-        return String(rawTime);
+        return String(rawTime).trim().substring(0, 5);
     }
     
     async function loadData() {
         try {
             logDebug('Начинаем загрузку данных из API');
             const noCacheUrl = API_URL + (API_URL.includes('?') ? '&' : '?') + '_nocache=' + Date.now();
-            logDebug('URL запроса:', noCacheUrl);
             
             const response = await fetch(noCacheUrl);
-            logDebug('Статус ответа:', response.status);
-            
             const data = await response.json();
-            logDebug('Получено сырых записей:', data ? data.length : 0);
             
-            if (data && data.length > 0) {
-                logDebug('Пример первой записи:', data[0]);
-            }
-
             allData = data.map(item => {
                 let seatsCount = item.seats ? Number(item.seats) : 1;
                 if (isNaN(seatsCount) || seatsCount === 0) return null;
@@ -216,17 +199,14 @@
                 };
             }).filter(item => item !== null && item.date && item.route && item.time);
             
-            logDebug('После обработки и фильтрации записей:', allData.length);
-            
             if (allData.length === 0) {
-                document.getElementById('mainContent').innerHTML = '<div class="empty-state">Нет данных. Проверьте, есть ли записи в Google таблице с заполненными полями даты, маршрута и времени.</div>';
+                document.getElementById('mainContent').innerHTML = '<div class="empty-state">Нет данных. Проверьте записи в Google таблице.</div>';
             } else {
                 renderCurrentView();
             }
         } catch (error) {
             logDebug('ОШИБКА:', error.message);
-            console.error('Полная ошибка:', error);
-            document.getElementById('mainContent').innerHTML = `<div class="empty-state">Ошибка загрузки данных: ${error.message}<br><br>Проверьте интернет соединение и CORS настройки.</div>`;
+            document.getElementById('mainContent').innerHTML = `<div class="empty-state">Ошибка загрузки данных: ${error.message}</div>`;
         }
     }
     
@@ -237,10 +217,7 @@
     function getUniqueDates() {
         let filtered = getFilteredData();
         let dates = [...new Set(filtered.map(item => item.date))];
-        logDebug('Уникальные даты (все):', dates);
-        let upcoming = getUpcomingDates(dates, 7);
-        logDebug('Предстоящие даты (первые 7):', upcoming);
-        return upcoming;
+        return getUpcomingDates(dates, 7);
     }
 
     function getTotalSeatsForDate(date) {
@@ -252,7 +229,7 @@
         let filtered = getFilteredData().filter(item => item.date === date);
         const result = [];
         for (let time of TIME_ORDER) {
-            const itemsAtTime = filtered.filter(item => item.time.substring(0, 5) === time.substring(0, 5));
+            const itemsAtTime = filtered.filter(item => convertTime(item.time) === time);
             if (itemsAtTime.length > 0) {
                 const routesMap = new Map();
                 itemsAtTime.forEach(item => {
@@ -273,7 +250,7 @@
         let filtered = getFilteredData().filter(item => item.date === date);
         const result = [];
         for (let time of TIME_ORDER) {
-            const itemsAtTime = filtered.filter(item => item.time.substring(0, 5) === time.substring(0, 5));
+            const itemsAtTime = filtered.filter(item => convertTime(item.time) === time);
             if (itemsAtTime.length > 0) {
                 const routesMap = new Map();
                 itemsAtTime.forEach(item => {
@@ -290,7 +267,7 @@
     
     function getPassengersByDateTime(date, time, route) {
         let filtered = getFilteredData();
-        return filtered.filter(item => item.date === date && item.time.substring(0, 5) === time.substring(0, 5) && item.route === route);
+        return filtered.filter(item => item.date === date && convertTime(item.time) === time && item.route === route);
     }
     
     function updateUI() {
@@ -328,7 +305,6 @@
                 selectedDate = chip.dataset.date;
                 document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
                 chip.classList.add('active');
-                renderTimesView();
                 currentView = 'times';
                 renderCurrentView();
             };
@@ -402,7 +378,7 @@
                         <div class="time-content" id="tc-${slot.time.replace(':', '')}" style="display:none">
                             ${hasRoutes ? `
                                 <div class="summary-block" data-time="${slot.time}">
-                                    <span class="summary-title">Общая сводка</span>
+                                    <span class="summary-title">Общая сводка (Показать списки)</span>
                                     <span class="summary-seats">${slot.totalSeats} мест</span>
                                 </div>
                                 <div class="routes-details" id="rd-${slot.time.replace(':', '')}" style="display:none">
@@ -435,9 +411,7 @@
             if (!time) return;
             const content = document.getElementById(`tc-${time.replace(':', '')}`);
             if (content) {
-                const newHeader = header.cloneNode(true);
-                header.parentNode.replaceChild(newHeader, header);
-                newHeader.onclick = (e) => {
+                header.onclick = (e) => {
                     e.stopPropagation();
                     const isVisible = content.style.display === 'block';
                     content.style.display = isVisible ? 'none' : 'block';
@@ -450,16 +424,14 @@
             if (!time) return;
             const details = document.getElementById(`rd-${time.replace(':', '')}`);
             if (details) {
-                const newSummary = summary.cloneNode(true);
-                summary.parentNode.replaceChild(newSummary, summary);
-                newSummary.onclick = (e) => {
+                summary.onclick = (e) => {
                     e.stopPropagation();
                     if (details.style.display === 'none') {
                         details.style.display = 'block';
-                        newSummary.style.background = '#eef2f6';
+                        summary.style.background = '#eef2f6';
                     } else {
                         details.style.display = 'none';
-                        newSummary.style.background = '#f8f9fa';
+                        summary.style.background = '#f8f9fa';
                     }
                 };
             }
