@@ -137,26 +137,32 @@
         .phone-container.confirmed .btn-confirm-status::after { color: white; }
         .phone-container:active { transform: scale(0.97); }
 
-        /* --- ОБНОВЛЕННЫЙ ДИЗАЙН ЯВКИ --- */
-    
+        /* --- УМЕНЬШЕННЫЙ ДИЗАЙН ЯВКИ (КОМПАКТНЫЕ КНОПКИ) --- */
         .btn-presence {
             display: inline-flex; align-items: center; justify-content: center;
-            padding: 6px 14px; /* Было 8px 18px */
-            border-radius: 12px; /* Чуть уменьшил радиус для пропорции */
-            font-size: 11px; /* Было 13px */
+            padding: 6px 12px;        /* уменьшенные отступы */
+            border-radius: 12px;      /* чуть скругленнее, но компактно */
+            font-size: 11px;          /* меньший шрифт */
             font-weight: 700;
-            border: 2px solid #e0e6ed; background: transparent; color: #8395a7;
-            cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            min-width: 100px; /* Было 125px */
-            min-height: 34px; /* Было 42px */
-            user-select: none; -webkit-tap-highlight-color: transparent;
-            text-transform: uppercase; letter-spacing: 0.3px;
+            border: 2px solid #e0e6ed; 
+            background: transparent; 
+            color: #8395a7;
+            cursor: pointer; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            min-width: 90px;          /* уже, чем было */
+            min-height: 34px;         /* уменьшенная высота */
+            user-select: none; 
+            -webkit-tap-highlight-color: transparent;
+            text-transform: uppercase; 
+            letter-spacing: 0.3px;
+            white-space: nowrap;
         }
         
         .btn-presence:active { transform: scale(0.95); }
         .btn-presence.checked { 
             background: linear-gradient(135deg, #3cba0a 0%, #3cba0a 100%); 
-            color: white; border-color: #3cba0a; 
+            color: white; 
+            border-color: #3cba0a; 
             box-shadow: 0 4px 12px rgba(68, 189, 50, 0.35); 
         }
         
@@ -187,6 +193,13 @@
             .passengers-table th, .passengers-table td { padding: 10px 10px; }
             .driver-selector { padding: 12px 16px; }
             .driver-selector select { padding: 8px 12px; font-size: 14px; min-width: 140px; }
+            /* на мобилках тоже компактнее */
+            .btn-presence {
+                padding: 4px 10px;
+                font-size: 10px;
+                min-width: 80px;
+                min-height: 30px;
+            }
         }
     </style>
 </head>
