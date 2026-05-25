@@ -26,11 +26,11 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
         .driver-selector label { font-weight: 600; color: #1e3a5f; font-size: 15px; }
-        .driver-selector select { 
-            padding: 10px 16px; 
-            border-radius: 40px; 
-            border: 1px solid #ddd; 
-            font-size: 15px; 
+        .driver-selector select {
+            padding: 10px 16px;
+            border-radius: 40px;
+            border: 1px solid #ddd;
+            font-size: 15px;
             background: white;
             min-width: 180px;
         }
@@ -58,35 +58,66 @@
         .route-total { font-size: 16px; color: #003cff; font-weight: 600; margin-left: 15px; display: inline-block; }
 
         .table-wrapper { display: block; overflow-x: auto; margin-top: 10px; border-radius: 16px; -webkit-overflow-scrolling: touch; }
-        .passengers-table { width: 100%; border-collapse: collapse; background: white; min-width: 600px; font-size: 14px; }
-        .passengers-table th, .passengers-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #eee; }
+        .passengers-table { width: 100%; border-collapse: collapse; background: white; min-width: 650px; font-size: 14px; }
+        .passengers-table th, .passengers-table td { padding: 14px 14px; text-align: left; border-bottom: 1px solid #eee; vertical-align: middle; }
         .passengers-table th { background: #f8f9fa; font-weight: 600; color: #555; font-size: 13px; }
 
+        /* Единый оптимизированный блок телефона и подтверждения брони */
+        .phone-container {
+            display: inline-flex; align-items: center; justify-content: space-between; gap: 10px;
+            padding: 6px 12px; border-radius: 12px; background: #f5f6fa; border: 1px solid #dcdde1;
+            min-width: 170px; transition: all 0.25s ease; cursor: pointer; user-select: none;
+        }
+        .phone-container span { font-weight: 500; font-variant-numeric: tabular-nums; color: #2f3640; }
+        
+        .btn-confirm-status {
+            background: none; border: none; padding: 0; pointer-events: none; /* Клик ловит контейнер */
+            width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; border: 2px solid #b2bec3; transition: all 0.2s ease; position: relative;
+        }
+        .btn-confirm-status::after { content: '✓'; color: transparent; font-size: 11px; font-weight: bold; transition: color 0.2s ease; }
+        
+        /* Стили при подтверждении бронирования (для всего блока) */
+        .phone-container.confirmed {
+            background: #e8f5e9; border-color: #a5d6a7;
+        }
+        .phone-container.confirmed span { color: #1b5e20; }
+        .phone-container.confirmed .btn-confirm-status {
+            background: #2e7d32; border-color: #2e7d32;
+        }
+        .phone-container.confirmed .btn-confirm-status::after { color: white; }
+        
+        /* Состояние загрузки */
+        .phone-container.loading-db { opacity: 0.5; cursor: wait; }
+
+        /* Оптимизированная кнопка прибытия пассажира (формат статуса) */
+        .btn-presence {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600;
+            border: 1px solid #dcdde1; background: #f8f9fa; color: #718093;
+            cursor: pointer; transition: all 0.2s ease; min-width: 120px; min-height: 38px;
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+        .btn-presence:active { transform: scale(0.96); }
+        
+        /* Статус: На месте */
+        .btn-presence.checked {
+            background: #4cd137; color: white; border-color: #4cd137;
+            box-shadow: 0 2px 6px rgba(76,209,55,0.3);
+        }
+        
+        .btn-presence:disabled { opacity: 0.5; cursor: wait; background: #f1f2f6 !important; color: #7f8c8d !important; border-color: #dcdde1 !important; box-shadow: none !important; }
+
         .payment-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 500;
-            white-space: nowrap;
+            display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; white-space: nowrap;
         }
-        .payment-cash {
-            background: #d4edda;
-            color: #04701d;
-            border: 1px solid #c3e6cb;
-        }
-        .payment-cashless {
-            background: #e8d9ff;
-            color: #2b0367;
-            border: 1px solid #d1c4e9;
-        }
+        .payment-cash { background: #d4edda; color: #04701d; border: 1px solid #c3e6cb; }
+        .payment-cashless { background: #e8d9ff; color: #2b0367; border: 1px solid #d1c4e9; }
 
         .empty-state { text-align: center; padding: 50px; background: white; border-radius: 20px; color: #999; font-size: 15px; }
         .loading { text-align: center; padding: 50px; color: #666; font-size: 15px; }
         .info-note { background: #e8f4fd; border-radius: 12px; padding: 12px 18px; margin-top: 20px; font-size: 13px; color: #1e3a5f; }
-        .check-cell { text-align: center !important; width: 50px; }
-        .passenger-check { width: 22px; height: 22px; cursor: pointer; transform: scale(1); }
-        .passenger-check:disabled { opacity: 0.5; cursor: wait; }
+        .check-cell { text-align: center !important; width: 140px; }
         .zero-badge { background: rgba(255,255,255,0.2); }
 
         @media (max-width: 700px) {
@@ -100,8 +131,8 @@
             .summary-block { padding: 12px 18px; }
             .summary-title { font-size: 15px; }
             .route-title { font-size: 16px; }
-            .passengers-table { font-size: 13px; min-width: 550px; }
-            .passengers-table th, .passengers-table td { padding: 10px 12px; }
+            .passengers-table { font-size: 13px; min-width: 600px; }
+            .passengers-table th, .passengers-table td { padding: 10px 10px; }
             .driver-selector { padding: 12px 16px; }
             .driver-selector select { padding: 8px 12px; font-size: 14px; min-width: 140px; }
         }
@@ -129,12 +160,11 @@
 
     <div class="subtitle" id="subtitle">Актуальные рейсы на ближайшие дни</div>
     <div id="mainContent"><div class="loading">Загрузка данных...</div></div>
-    <div class="info-note">Нажмите на время → общая сводка → таблицы пассажиров. Чекбоксы синхронизируются автоматически с базой данных. Чтобы назначить водителя — отредактируйте колонку "Водитель" в Google Таблице.</div>
+    <div class="info-note">Нажмите на время → общая сводка → таблицы пассажиров. Изменения синхронизируются автоматически с базой данных. Чтобы назначить водителя — отредактируйте колонку "Водитель" в Google Таблице.</div>
 </div>
 
 <script>
-    // Сюда вставить актуальный URL развертывания Google Скрипта
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxGVNFR2TpU6oNkbnwp4XUr5CqgX4fwv0fkWm34AyQqJEJAvJxfqx_ws5MGr5-yiq2h/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxBeKVIwCUN-pcI2WvdzziYUNQgB3XrKiNfDhzloOJN3Pq2_MfUmlzXxg1huSQ5l_1BZA/exec';
     const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
 
     let allData = [];
@@ -146,7 +176,6 @@
         console.log(`[DEBUG] ${msg}`, data || '');
     }
 
-    // Измененный алгоритм вывода бейджа оплаты с учетом примечания владельца
     function formatPayment(payment, note) {
         const noteStr = note ? ` (${note})` : '';
         if (!payment || payment === '') {
@@ -155,14 +184,12 @@
         
         const lowerPayment = payment.toLowerCase();
         
-        // Обработка наличных денег (примечания не трогаем)
         if (lowerPayment.includes('нал') || lowerPayment.includes('налич') || /^\d/.test(payment)) {
             const moneyMatch = payment.match(/\d+/);
             if (moneyMatch) return `<span class="payment-badge payment-cash">Нал ${moneyMatch[0]} ₽</span>`;
             return `<span class="payment-badge payment-cash">Наличные</span>`;
         }
         
-        // Обработка безналичных (добавляем примечание в скобках, если оно есть)
         if (lowerPayment.includes('безнал') || lowerPayment === 'без') {
             return `<span class="payment-badge payment-cashless">Безнал${noteStr}</span>`;
         }
@@ -206,11 +233,9 @@
             
             if (data.error) throw new Error(data.error);
 
-            // Фильтруем и принудительно форматируем даты в нормальный вид ДД.ММ.ГГГГ
             allData = data.filter(item => item !== null && item.date && item.route && item.time).map(item => {
                 let rawDate = item.date;
                 
-                // Если дата пришла в виде длинной системной строки "Mon May 25 2026..."
                 if (typeof rawDate === 'string' && rawDate.includes('GMT')) {
                     let d = new Date(rawDate);
                     if (!isNaN(d.getTime())) {
@@ -238,31 +263,46 @@
         }
     }
 
-    async function saveCheckToDatabase(rowId, isChecked, checkboxElement) {
-        checkboxElement.disabled = true; // Блокируем чекбокс на время сетевого запроса
+    async function saveCheckToDatabase(rowId, isChecked, element, type) {
+        // Блокируем элемент на время отправки запроса
+        if (type === 'confirmed') {
+            element.classList.add('loading-db');
+        } else {
+            element.disabled = true;
+        }
+
         try {
-            const response = await fetch(API_URL, {
+            await fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Важно для обхода ограничений CORS в Google Apps Script Web Apps
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ rowId: rowId, checked: isChecked })
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rowId: rowId, checked: isChecked, type: type })
             });
             
-            // Поскольку используется режим no-cors, мы не можем прочитать ответ, 
-            // но если промис выполнился — значит данные ушли в Google Таблицу.
-            logDebug(`Статус изменен для строки ${rowId}: ${isChecked}`);
+            logDebug(`Статус [${type}] изменен для строки ${rowId}: ${isChecked}`);
             
-            // Локально обновляем состояние в памяти, чтобы при перерисовке оно сохранилось
             const item = allData.find(d => d.rowId === rowId);
-            if (item) item.checked = isChecked;
+            if (item) {
+                if (type === 'confirmed') item.confirmed = isChecked;
+                else item.checked = isChecked;
+            }
+            
+            // Динамически меняем интерфейс
+            if (type === 'confirmed') {
+                element.classList.toggle('confirmed', isChecked);
+            } else {
+                element.classList.toggle('checked', isChecked);
+                element.innerHTML = isChecked ? '✅ На месте' : '⏳ Ожидает';
+            }
             
         } catch (error) {
             alert('Не удалось сохранить отметку. Проверьте интернет.');
-            checkboxElement.checked = !isChecked; // Откатываем обратно в случае ошибки
         } finally {
-            checkboxElement.disabled = false;
+            if (type === 'confirmed') {
+                element.classList.remove('loading-db');
+            } else {
+                element.disabled = false;
+            }
         }
     }
 
@@ -285,11 +325,9 @@
         let filtered = getFilteredData().filter(item => item.date === date);
         const result = [];
         for (let time of TIME_ORDER) {
-            // Защита: приводим время из таблицы к формату ЧЧ:ММ для точного сравнения
             const itemsAtTime = filtered.filter(item => {
                 if (!item.time) return false;
                 let tStr = String(item.time).trim();
-                // Если пришла полная дата-время из Google (например, содержащая год или пробелы)
                 if (tStr.includes(' ') || tStr.includes(':')) {
                     let match = tStr.match(/(\d{2}):(\d{2})/);
                     if (match) tStr = match[1] + ':' + match[2];
@@ -340,6 +378,7 @@
         }
         return result;
     }
+    
     function getPassengersByDateTime(date, time, route) {
         let filtered = getFilteredData();
         return filtered.filter(item => {
@@ -450,7 +489,7 @@
                         </div>
                     </div>
                 `;
-            } 
+            }
             else if (!slot.isEmpty) {
                 const hasRoutes = Object.keys(slot.routes).length > 0;
                 return `
@@ -469,14 +508,23 @@
                                     ${Object.keys(slot.routes).map(route => {
                                         const passengers = getPassengersByDateTime(selectedDate, slot.time, route);
                                         const totalSeats = passengers.reduce((s,p) => s + p.seats, 0);
-                                        return `<div class="route-detail"><div><span class="route-title">${escapeHtml(route.replace('-', ' → '))}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО пассажира</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th></tr></thead><tbody>${passengers.map((p, idx) => {
+                                        return `<div class="route-detail"><div><span class="route-title">${escapeHtml(route.replace('-', ' → '))}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО пассажира</th><th>Телефон и Бронь</th><th>Мест</th><th>Оплата</th><th style="text-align:center;">Статус явки</th></tr></thead><tbody>${passengers.map((p, idx) => {
                                             return `<tr>
-                                                <td style="text-align: center;">${idx+1}</td>
+                                                <td style="text-align: center; color: #7f8c8d;">${idx+1}</td>
                                                 <td><strong>${escapeHtml(p.name)}</strong></td>
-                                                <td>${escapeHtml(p.phone)}</td>
-                                                <td>${p.seats}</td>
+                                                <td>
+                                                    <div class="phone-container ${p.confirmed ? 'confirmed' : ''}" data-rowid="${p.rowId}">
+                                                        <span>${escapeHtml(p.phone)}</span>
+                                                        <button class="btn-confirm-status"></button>
+                                                    </div>
+                                                </td>
+                                                <td style="font-weight: 600;">${p.seats}</td>
                                                 <td class="payment-cell">${formatPayment(p.payment, p.note)}</td>
-                                                <td class="check-cell"><input type="checkbox" class="passenger-check" data-rowid="${p.rowId}" ${p.checked ? 'checked' : ''}></td>
+                                                <td class="check-cell">
+                                                    <button class="btn-presence ${p.checked ? 'checked' : ''}" data-rowid="${p.rowId}">
+                                                        ${p.checked ? '✅ На месте' : '⏳ Ожидает'}
+                                                    </button>
+                                                </td>
                                             </tr>`;
                                         }).join('')}</tbody></table></div>`}</div>`;
                                     }).join('')}
@@ -524,11 +572,23 @@
             }
         });
 
-        // Назначаем сетевое сохранение на изменение статуса чекбокса
-        document.querySelectorAll('.passenger-check').forEach(cb => {
-            cb.onchange = () => {
-                const rowId = Number(cb.dataset.rowid);
-                saveCheckToDatabase(rowId, cb.checked, cb);
+        // Назначаем обработку на клик ВСЕГО блока телефона (изменение подтверждения)
+        document.querySelectorAll('.phone-container').forEach(container => {
+            container.onclick = (e) => {
+                if (container.classList.contains('loading-db')) return;
+                const rowId = Number(container.dataset.rowid);
+                const willBeChecked = !container.classList.contains('confirmed');
+                saveCheckToDatabase(rowId, willBeChecked, container, 'confirmed');
+            };
+        });
+
+        // Назначаем обработку на клик оптимизированной кнопки статуса "Явился"
+        document.querySelectorAll('.btn-presence').forEach(btn => {
+            btn.onclick = (e) => {
+                e.preventDefault();
+                const rowId = Number(btn.dataset.rowid);
+                const willBeChecked = !btn.classList.contains('checked');
+                saveCheckToDatabase(rowId, willBeChecked, btn, 'present');
             };
         });
     }
@@ -548,7 +608,6 @@
         }
     };
 
-    // Загрузка актуальных данных системы
     loadData();
 </script>
 </body>
