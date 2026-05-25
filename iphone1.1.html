@@ -80,44 +80,13 @@
             color: #2b0367;
             border: 1px solid #d1c4e9;
         }
-        .payment-note {
-            font-size: 11px;
-            opacity: 0.8;
-            margin-left: 5px;
-            font-weight: normal;
-        }
-
-        .debug-console {
-            background: #1e1e1e;
-            color: #0f0;
-            font-family: monospace;
-            font-size: 11px;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            max-height: 150px;
-            overflow-y: auto;
-            display: none;
-        }
-        .debug-console.show {
-            display: block;
-        }
-        .debug-toggle {
-            font-size: 11px;
-            background: #666;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 5px;
-            margin-bottom: 8px;
-            cursor: pointer;
-        }
 
         .empty-state { text-align: center; padding: 50px; background: white; border-radius: 20px; color: #999; font-size: 15px; }
         .loading { text-align: center; padding: 50px; color: #666; font-size: 15px; }
         .info-note { background: #e8f4fd; border-radius: 12px; padding: 12px 18px; margin-top: 20px; font-size: 13px; color: #1e3a5f; }
         .check-cell { text-align: center !important; width: 50px; }
         .passenger-check { width: 22px; height: 22px; cursor: pointer; transform: scale(1); }
+        .passenger-check:disabled { opacity: 0.5; cursor: wait; }
         .zero-badge { background: rgba(255,255,255,0.2); }
 
         @media (max-width: 700px) {
@@ -160,77 +129,45 @@
 
     <div class="subtitle" id="subtitle">Актуальные рейсы на ближайшие дни</div>
     <div id="mainContent"><div class="loading">Загрузка данных...</div></div>
-    <div class="info-note">Нажмите на время → общая сводка → таблицы пассажиров. Чтобы назначить водителя — отредактируйте колонку "Водитель" в Google Таблице.</div>
+    <div class="info-note">Нажмите на время → общая сводка → таблицы пассажиров. Чекбоксы синхронизируются автоматически с базой данных. Чтобы назначить водителя — отредактируйте колонку "Водитель" в Google Таблице.</div>
 </div>
 
 <script>
-    // ТОЛЬКО ОДИН ПРАВИЛЬНЫЙ API URL
-    const API_URL = 'https://script.google.com/macros/s/AKfycbywCw0rgsiMPyXjPArazMrtEHohg7DwJD0QQHMBUxFdYWEGm2octKRigGGX_xcmbemY/exec';
+    // Сюда вставить актуальный URL развертывания Google Скрипта
+    const API_URL = 'https://script.google.com/macros/s/AKfycby-V3wtm9f7bFbCEDW6HxOAINja05fgESzcMjE3M4YO8HmqrXJERLtCF-U2QKd-eCEO/exec';
     const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
 
     let allData = [];
     let currentView = 'dates';
     let selectedDate = null;
-    let arrivalChecks = {};
     let currentDriver = 'all';
-
-    const STORAGE_CHECKS_KEY = 'arrivalChecks';
 
     function logDebug(msg, data) {
         console.log(`[DEBUG] ${msg}`, data || '');
     }
 
-    function loadChecksFromStorage() {
-        const saved = localStorage.getItem(STORAGE_CHECKS_KEY);
-        if (saved) arrivalChecks = JSON.parse(saved);
-        logDebug('Загружены чеки из localStorage', Object.keys(arrivalChecks).length);
-    }
-
-    function saveCheckToStorage(key, isChecked) {
-        if (isChecked) arrivalChecks[key] = true;
-        else delete arrivalChecks[key];
-        localStorage.setItem(STORAGE_CHECKS_KEY, JSON.stringify(arrivalChecks));
-    }
-
-    // Функция форматирования платежа с учетом столбцов НАЛ/БЕЗНАЛ и ПРИМЕЧАН
+    // Измененный алгоритм вывода бейджа оплаты с учетом примечания владельца
     function formatPayment(payment, note) {
-        if (!payment || payment === '') return '<span class="payment-badge payment-cashless">Безнал</span>';
-        
-        const paymentUpper = String(payment).toUpperCase().trim();
-        
-        // Проверка на БЕЗНАЛ (БЕЗ, БЕЗНАЛ, БЕЗНАЛИЧНЫЙ)
-        if (paymentUpper === 'БЕЗ' || paymentUpper === 'БЕЗНАЛ' || paymentUpper === 'БЕЗНАЛИЧНЫЙ' || paymentUpper.includes('БЕЗ')) {
-            // Если есть примечание, добавляем его в скобках
-            if (note && note.toString().trim() !== '') {
-                const noteText = String(note).trim();
-                return `<span class="payment-badge payment-cashless">Безнал <span class="payment-note">(${noteText})</span></span>`;
-            }
-            return `<span class="payment-badge payment-cashless">Безнал</span>`;
+        const noteStr = note ? ` (${note})` : '';
+        if (!payment || payment === '') {
+            return `<span class="payment-badge payment-cashless">Безнал${noteStr}</span>`;
         }
         
-        // Проверка на НАЛИЧНЫЕ (НАЛ, НАЛИЧНЫЕ, или начинается с НАЛ)
-        if (paymentUpper.includes('НАЛ') || paymentUpper.includes('НАЛИЧ')) {
-            // Извлекаем сумму, если есть
-            const moneyMatch = String(payment).match(/\d+/);
-            if (moneyMatch) {
-                return `<span class="payment-badge payment-cash">Нал ${moneyMatch[0]} ₽</span>`;
-            }
-            return `<span class="payment-badge payment-cash">Наличные</span>";
+        const lowerPayment = payment.toLowerCase();
+        
+        // Обработка наличных денег (примечания не трогаем)
+        if (lowerPayment.includes('нал') || lowerPayment.includes('налич') || /^\d/.test(payment)) {
+            const moneyMatch = payment.match(/\d+/);
+            if (moneyMatch) return `<span class="payment-badge payment-cash">Нал ${moneyMatch[0]} ₽</span>`;
+            return `<span class="payment-badge payment-cash">Наличные</span>`;
         }
         
-        // Если есть цифры, считаем наличными
-        if (/\d/.test(payment)) {
-            const moneyMatch = String(payment).match(/\d+/);
-            if (moneyMatch) {
-                return `<span class="payment-badge payment-cash">Нал ${moneyMatch[0]} ₽</span>`;
-            }
+        // Обработка безналичных (добавляем примечание в скобках, если оно есть)
+        if (lowerPayment.includes('безнал') || lowerPayment === 'без') {
+            return `<span class="payment-badge payment-cashless">Безнал${noteStr}</span>`;
         }
         
-        // По умолчанию - безнал
-        if (note && note.toString().trim() !== '') {
-            return `<span class="payment-badge payment-cashless">Безнал <span class="payment-note">(${String(note).trim()})</span></span>`;
-        }
-        return `<span class="payment-badge payment-cashless">${payment}</span>`;
+        return `<span class="payment-badge payment-cashless">${payment}${noteStr}</span>`;
     }
 
     function filterByDriver(data) {
@@ -242,8 +179,6 @@
         if (!dateStr) return new Date();
         let parts = String(dateStr).split('.');
         if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
-        let hyphenParts = String(dateStr).split('-');
-        if (hyphenParts.length === 3) return new Date(hyphenParts[0], hyphenParts[1] - 1, hyphenParts[2]);
         return new Date(dateStr);
     }
 
@@ -261,76 +196,73 @@
         return futureDates.slice(0, limit);
     }
 
-    function convertDate(rawDate) {
-        if (!rawDate) return '';
-        if (typeof rawDate === 'string' && rawDate.match(/^\d{2}\.\d{2}\.\d{4}$/)) return rawDate;
-        let d = new Date(rawDate);
-        if (!isNaN(d.getTime())) {
-            let day = d.getDate(), month = d.getMonth() + 1, year = d.getFullYear();
-            return (day < 10 ? '0' + day : day) + '.' + (month < 10 ? '0' + month : month) + '.' + year;
-        }
-        if (typeof rawDate === 'string' && rawDate.includes('-')) {
-            let parts = rawDate.split('-');
-            if (parts.length === 3) return parts[2] + '.' + parts[1] + '.' + parts[0];
-        }
-        return String(rawDate);
-    }
-
-    function convertTime(rawTime) {
-        if (!rawTime) return '';
-        let tStr = String(rawTime).trim();
-        if (tStr.includes(':')) {
-            let parts = tStr.split(':');
-            let hour = parts[0].slice(-2);
-            let minute = parts[1].slice(0, 2);
-            return hour + ':' + minute;
-        }
-        return tStr;
-    }
-
     async function loadData() {
         try {
             logDebug('Начинаем загрузку данных из API');
             const noCacheUrl = API_URL + (API_URL.includes('?') ? '&' : '?') + '_nocache=' + Date.now();
-            logDebug('URL запроса:', noCacheUrl);
             
             const response = await fetch(noCacheUrl);
-            logDebug('Статус ответа:', response.status);
-            
             const data = await response.json();
-            logDebug('Получено сырых записей:', data ? data.length : 0);
             
-            if (data && data.length > 0) {
-                logDebug('Пример первой записи:', data[0]);
-            }
+            if (data.error) throw new Error(data.error);
 
-            allData = data.map(item => {
-                let seatsCount = item.seats ? Number(item.seats) : 1;
-                if (isNaN(seatsCount) || seatsCount === 0) return null;
-                return {
-                    date: convertDate(item.date),
-                    route: item.route,
-                    time: convertTime(item.time),
-                    name: item.name || 'Имя не указано',
-                    phone: item.phone || '—',
-                    seats: seatsCount,
-                    driver: item.driver || 'Не назначен',
-                    payment: item.payment || '',
-                    paymentNote: item.paymentNote || ''  // Примечание из столбца ПРИМЕЧАН
-                };
-            }).filter(item => item !== null && item.date && item.route && item.time);
+            // Фильтруем и принудительно форматируем даты в нормальный вид ДД.ММ.ГГГГ
+            allData = data.filter(item => item !== null && item.date && item.route && item.time).map(item => {
+                let rawDate = item.date;
+                
+                // Если дата пришла в виде длинной системной строки "Mon May 25 2026..."
+                if (typeof rawDate === 'string' && rawDate.includes('GMT')) {
+                    let d = new Date(rawDate);
+                    if (!isNaN(d.getTime())) {
+                        let day = d.getDate(), month = d.getMonth() + 1, year = d.getFullYear();
+                        item.date = (day < 10 ? '0' + day : day) + '.' + (month < 10 ? '0' + month : month) + '.' + year;
+                    }
+                } else if (rawDate instanceof Date) {
+                    let day = rawDate.getDate(), month = rawDate.getMonth() + 1, year = rawDate.getFullYear();
+                    item.date = (day < 10 ? '0' + day : day) + '.' + (month < 10 ? '0' + month : month) + '.' + year;
+                }
+                
+                return item;
+            });
             
             logDebug('После обработки и фильтрации записей:', allData.length);
             
             if (allData.length === 0) {
-                document.getElementById('mainContent').innerHTML = '<div class="empty-state">Нет данных. Проверьте, есть ли записи в Google таблице с заполненными полями даты, маршрута и времени.</div>';
+                document.getElementById('mainContent').innerHTML = '<div class="empty-state">Нет данных. Проверьте записи в Google таблице.</div>';
             } else {
                 renderCurrentView();
             }
         } catch (error) {
             logDebug('ОШИБКА:', error.message);
-            console.error('Полная ошибка:', error);
-            document.getElementById('mainContent').innerHTML = `<div class="empty-state">Ошибка загрузки данных: ${error.message}<br><br>Проверьте интернет соединение и CORS настройки.</div>`;
+            document.getElementById('mainContent').innerHTML = `<div class="empty-state">Ошибка загрузки данных: ${error.message}</div>`;
+        }
+    }
+
+    async function saveCheckToDatabase(rowId, isChecked, checkboxElement) {
+        checkboxElement.disabled = true; // Блокируем чекбокс на время сетевого запроса
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Важно для обхода ограничений CORS в Google Apps Script Web Apps
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ rowId: rowId, checked: isChecked })
+            });
+            
+            // Поскольку используется режим no-cors, мы не можем прочитать ответ, 
+            // но если промис выполнился — значит данные ушли в Google Таблицу.
+            logDebug(`Статус изменен для строки ${rowId}: ${isChecked}`);
+            
+            // Локально обновляем состояние в памяти, чтобы при перерисовке оно сохранилось
+            const item = allData.find(d => d.rowId === rowId);
+            if (item) item.checked = isChecked;
+            
+        } catch (error) {
+            alert('Не удалось сохранить отметку. Проверьте интернет.');
+            checkboxElement.checked = !isChecked; // Откатываем обратно в случае ошибки
+        } finally {
+            checkboxElement.disabled = false;
         }
     }
 
@@ -341,10 +273,7 @@
     function getUniqueDates() {
         let filtered = getFilteredData();
         let dates = [...new Set(filtered.map(item => item.date))];
-        logDebug('Уникальные даты (все):', dates);
-        let upcoming = getUpcomingDates(dates, 7);
-        logDebug('Предстоящие даты (первые 7):', upcoming);
-        return upcoming;
+        return getUpcomingDates(dates, 7);
     }
 
     function getTotalSeatsForDate(date) {
@@ -356,7 +285,18 @@
         let filtered = getFilteredData().filter(item => item.date === date);
         const result = [];
         for (let time of TIME_ORDER) {
-            const itemsAtTime = filtered.filter(item => item.time.substring(0, 5) === time.substring(0, 5));
+            // Защита: приводим время из таблицы к формату ЧЧ:ММ для точного сравнения
+            const itemsAtTime = filtered.filter(item => {
+                if (!item.time) return false;
+                let tStr = String(item.time).trim();
+                // Если пришла полная дата-время из Google (например, содержащая год или пробелы)
+                if (tStr.includes(' ') || tStr.includes(':')) {
+                    let match = tStr.match(/(\d{2}):(\d{2})/);
+                    if (match) tStr = match[1] + ':' + match[2];
+                }
+                return tStr.substring(0, 5) === time.substring(0, 5);
+            });
+
             if (itemsAtTime.length > 0) {
                 const routesMap = new Map();
                 itemsAtTime.forEach(item => {
@@ -368,6 +308,34 @@
                 result.push({ time: time, routes: routes, totalSeats: totalSeats, isEmpty: false });
             } else {
                 result.push({ time: time, routes: {}, totalSeats: 0, isEmpty: true });
+            }
+        }
+        return result;
+    }
+
+    function getNonEmptyTimesWithRoutesForDriver(date) {
+        let filtered = getFilteredData().filter(item => item.date === date);
+        const result = [];
+        for (let time of TIME_ORDER) {
+            const itemsAtTime = filtered.filter(item => {
+                if (!item.time) return false;
+                let tStr = String(item.time).trim();
+                if (tStr.includes(' ') || tStr.includes(':')) {
+                    let match = tStr.match(/(\d{2}):(\d{2})/);
+                    if (match) tStr = match[1] + ':' + match[2];
+                }
+                return tStr.substring(0, 5) === time.substring(0, 5);
+            });
+
+            if (itemsAtTime.length > 0) {
+                const routesMap = new Map();
+                itemsAtTime.forEach(item => {
+                    let currentSeats = routesMap.get(item.route) || 0;
+                    routesMap.set(item.route, currentSeats + item.seats);
+                });
+                const routes = Object.fromEntries(routesMap);
+                const totalSeats = Object.values(routes).reduce((a,b) => a + b, 0);
+                result.push({ time: time, routes: routes, totalSeats: totalSeats, isEmpty: false });
             }
         }
         return result;
@@ -394,7 +362,15 @@
 
     function getPassengersByDateTime(date, time, route) {
         let filtered = getFilteredData();
-        return filtered.filter(item => item.date === date && item.time.substring(0, 5) === time.substring(0, 5) && item.route === route);
+        return filtered.filter(item => {
+            if (!item.time) return false;
+            let tStr = String(item.time).trim();
+            if (tStr.includes(' ') || tStr.includes(':')) {
+                let match = tStr.match(/(\d{2}):(\d{2})/);
+                if (match) tStr = match[1] + ':' + match[2];
+            }
+            return item.date === date && tStr.substring(0, 5) === time.substring(0, 5) && item.route === route;
+        });
     }
 
     function updateUI() {
@@ -514,16 +490,15 @@
                                         const passengers = getPassengersByDateTime(selectedDate, slot.time, route);
                                         const totalSeats = passengers.reduce((s,p) => s + p.seats, 0);
                                         return `<div class="route-detail"><div><span class="route-title">${escapeHtml(route.replace('-', ' → '))}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО пассажира</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th></tr></thead><tbody>${passengers.map((p, idx) => {
-                                            const checkKey = `${selectedDate}_${route}_${slot.time}_${idx}_${p.name}_${p.phone}`;
                                             return `<tr>
                                                 <td style="text-align: center;">${idx+1}</td>
                                                 <td><strong>${escapeHtml(p.name)}</strong></td>
                                                 <td>${escapeHtml(p.phone)}</td>
                                                 <td>${p.seats}</td>
-                                                <td class="payment-cell">${formatPayment(p.payment, p.paymentNote)}</td>
-                                                <td class="check-cell"><input type="checkbox" class="passenger-check" data-key="${checkKey}" ${arrivalChecks[checkKey] ? 'checked' : ''}></td>
+                                                <td class="payment-cell">${formatPayment(p.payment, p.note)}</td>
+                                                <td class="check-cell"><input type="checkbox" class="passenger-check" data-rowid="${p.rowId}" ${p.checked ? 'checked' : ''}></td>
                                             </tr>`;
-                                        }).join('')}</tbody>}</table></div>`}</div>`;
+                                        }).join('')}</tbody></table></div>`}</div>`;
                                     }).join('')}
                                 </div>
                             ` : '<div class="empty-state" style="padding: 25px;">Нет данных о маршрутах</div>'}
@@ -569,8 +544,12 @@
             }
         });
 
+        // Назначаем сетевое сохранение на изменение статуса чекбокса
         document.querySelectorAll('.passenger-check').forEach(cb => {
-            cb.onchange = () => saveCheckToStorage(cb.dataset.key, cb.checked);
+            cb.onchange = () => {
+                const rowId = Number(cb.dataset.rowid);
+                saveCheckToDatabase(rowId, cb.checked, cb);
+            };
         });
     }
 
@@ -589,7 +568,7 @@
         }
     };
 
-    loadChecksFromStorage();
+    // Загрузка актуальных данных системы
     loadData();
 </script>
 </body>
