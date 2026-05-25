@@ -161,7 +161,8 @@
 </div>
 
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzcwLQvIX92-QRhKtvvbShDkaZJBZP6Eu2kVuoATV9zDAbuSQJOAX0K5QL_AAqFessG_Q/exec';
+    // Твоя обновленная ссылка на макрос Google
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzXNEfQLW7S6GP_FLi_RDBLuK64mNUxkbRmJghXXj1Jtkqx2VtlRzp2DbIj1M03AI4i/exec';
     const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
 
     let allData = [];
@@ -240,7 +241,7 @@
             });
             
             if (allData.length === 0) {
-                document.getElementById('mainContent').innerHTML = '<div class="empty-state">Нет данных. Проверьте записи в Google таблице.</div>';
+                document.getElementById('mainContent').innerHTML = '<div class="empty-state">Нет данных. Проверьте записи in Google таблице.</div>';
             } else {
                 renderCurrentView();
             }
@@ -249,7 +250,7 @@
         }
     }
 
-    // ВАРИАНТ 3: отправляем полные точные данные пассажира для точечного поиска строки
+    // ИСПРАВЛЕННАЯ ФУНКЦИЯ: Убирает CORS-блокировки и плавно переключает визуал
     async function togglePassengerStatus(passengerObj, buttonElement, cardElement) {
         const isCurrentlyChecked = buttonElement.classList.contains('arrived');
         const nextCheckedState = !isCurrentlyChecked;
@@ -257,10 +258,10 @@
         buttonElement.disabled = true;
         
         try {
-            // Шлем объект целиком (Дата, Время, Имя, Телефон), сервер сам найдет нужную строчку
+            // Безопасный асинхронный POST запрос с флагом no-cors
             await fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors',
+                mode: 'no-cors', 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     date: passengerObj.date,
@@ -271,7 +272,7 @@
                 })
             });
             
-            // Локально обновляем данные в памяти приложения (и у водителя, и у владельца)
+            // Сразу же обновляем локальное состояние в оперативной памяти
             const item = allData.find(d => 
                 d.date === passengerObj.date && 
                 d.time.substring(0, 5) === passengerObj.time.substring(0, 5) && 
@@ -280,7 +281,7 @@
             );
             if (item) item.checked = nextCheckedState;
             
-            // Быстро переключаем визуал
+            // Мгновенная и красивая смена дизайна кнопки телефона
             if (nextCheckedState) {
                 buttonElement.className = 'status-button arrived';
                 buttonElement.innerHTML = '✅ На месте';
@@ -292,6 +293,7 @@
             }
             
         } catch (error) {
+            console.error("Ошибка сети при смене статуса:", error);
             alert('Не удалось сохранить изменения. Проверьте подключение к сети.');
         } finally {
             buttonElement.disabled = false;
@@ -506,7 +508,6 @@
                                                         const btnText = p.checked ? '✅ На месте' : '⏳ Ожидает';
                                                         const phoneClean = p.phone ? p.phone.replace(/\D/g, '') : '';
                                                         
-                                                        // Сериализуем данные в data-атрибуты для легкого доступа при клике
                                                         return `
                                                         <div class="${cardClass}" id="pc-${p.rowId}">
                                                             <div class="passenger-info">
@@ -586,7 +587,6 @@
                 const rowId = Number(btn.dataset.rowid);
                 const card = document.getElementById(`pc-${rowId}`);
                 
-                // Собираем точный объект пассажира из атрибутов кнопки
                 const passengerObj = {
                     date: btn.dataset.date,
                     time: btn.dataset.time,
