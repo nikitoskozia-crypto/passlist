@@ -57,10 +57,48 @@
         .route-title { font-weight: 700; font-size: 18px; color: #1e3a5f; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #1e3a5f; display: inline-block; }
         .route-total { font-size: 16px; color: #003cff; font-weight: 600; margin-left: 15px; display: inline-block; }
 
-        .table-wrapper { display: block; overflow-x: auto; margin-top: 10px; border-radius: 16px; -webkit-overflow-scrolling: touch; }
-        .passengers-table { width: 100%; border-collapse: collapse; background: white; min-width: 600px; font-size: 14px; }
-        .passengers-table th, .passengers-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #eee; }
-        .passengers-table th { background: #f8f9fa; font-weight: 600; color: #555; font-size: 13px; }
+        .passengers-list { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+        .passenger-card { 
+            background: #fdfdfd; 
+            border: 1px solid #eef2f6; 
+            border-radius: 16px; 
+            padding: 14px 18px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            gap: 15px;
+            transition: all 0.2s ease;
+        }
+        .passenger-card.checked { background: #f4fbf6; border-color: #c3e6cb; }
+        
+        .passenger-info { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
+        .passenger-name-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .passenger-index { font-size: 13px; color: #999; font-weight: 600; }
+        .passenger-name { font-size: 16px; font-weight: 700; color: #1e3a5f; }
+        .passenger-seats-badge { background: #1e3a5f; color: white; font-size: 12px; padding: 2px 10px; border-radius: 10px; font-weight: 600; }
+        
+        .passenger-sub-row { display: flex; align-items: center; gap: 15px; font-size: 14px; color: #555; flex-wrap: wrap; margin-top: 2px; }
+        .passenger-phone a { color: #003cff; text-decoration: none; font-weight: 500; }
+
+        .status-button {
+            border: none;
+            padding: 10px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 125px;
+            justify-content: center;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .status-button.waiting { background: #f0f2f5; color: #666; border: 1px solid #ddd; }
+        .status-button.arrived { background: #2ecc71; color: white; box-shadow: 0 2px 6px rgba(46,204,113,0.3); }
+        .status-button:active { transform: scale(0.95); }
+        .status-button:disabled { opacity: 0.5; cursor: wait; }
 
         .payment-badge {
             display: inline-block;
@@ -70,23 +108,12 @@
             font-weight: 500;
             white-space: nowrap;
         }
-        .payment-cash {
-            background: #d4edda;
-            color: #04701d;
-            border: 1px solid #c3e6cb;
-        }
-        .payment-cashless {
-            background: #e8d9ff;
-            color: #2b0367;
-            border: 1px solid #d1c4e9;
-        }
+        .payment-cash { background: #d4edda; color: #04701d; border: 1px solid #c3e6cb; }
+        .payment-cashless { background: #e8d9ff; color: #2b0367; border: 1px solid #d1c4e9; }
 
         .empty-state { text-align: center; padding: 50px; background: white; border-radius: 20px; color: #999; font-size: 15px; }
         .loading { text-align: center; padding: 50px; color: #666; font-size: 15px; }
         .info-note { background: #e8f4fd; border-radius: 12px; padding: 12px 18px; margin-top: 20px; font-size: 13px; color: #1e3a5f; }
-        .check-cell { text-align: center !important; width: 50px; }
-        .passenger-check { width: 22px; height: 22px; cursor: pointer; transform: scale(1); }
-        .passenger-check:disabled { opacity: 0.5; cursor: wait; }
         .zero-badge { background: rgba(255,255,255,0.2); }
 
         @media (max-width: 700px) {
@@ -100,8 +127,8 @@
             .summary-block { padding: 12px 18px; }
             .summary-title { font-size: 15px; }
             .route-title { font-size: 16px; }
-            .passengers-table { font-size: 13px; min-width: 550px; }
-            .passengers-table th, .passengers-table td { padding: 10px 12px; }
+            .passenger-card { padding: 12px; flex-direction: column; align-items: stretch; gap: 10px; }
+            .status-button { width: 100%; padding: 12px; }
             .driver-selector { padding: 12px 16px; }
             .driver-selector select { padding: 8px 12px; font-size: 14px; min-width: 140px; }
         }
@@ -130,12 +157,11 @@
 
     <div class="subtitle" id="subtitle">Актуальные рейсы на ближайшие дни</div>
     <div id="mainContent"><div class="loading">Загрузка данных...</div></div>
-    <div class="info-note">Нажмите на время → общая сводка → таблицы пассажиров. Чекбоксы синхронизируются автоматически с базой данных. Чтобы назначить водителя — отредактируйте колонку "Водитель" в Google Таблице.</div>
+    <div class="info-note">Нажмите на время → общая сводка → карточки пассажиров. Изменения мгновенно улетают в общую базу данных. Синхронизировано между Владельцем и Водителями.</div>
 </div>
 
 <script>
-    // Сюда вставить актуальный URL развертывания Google Скрипта
-    const API_URL = 'https://script.google.com/macros/s/AKfycby-V3wtm9f7bFbCEDW6HxOAINja05fgESzcMjE3M4YO8HmqrXJERLtCF-U2QKd-eCEO/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzykyk9CQHyzVoug7FhbJs-f6ArGAhkGx_ietBjEJEcKdDkzay4_u5m2fAjkP2GYqMm/exec';
     const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
 
     let allData = [];
@@ -147,27 +173,20 @@
         console.log(`[DEBUG] ${msg}`, data || '');
     }
 
-    // Измененный алгоритм вывода бейджа оплаты с учетом примечания владельца
     function formatPayment(payment, note) {
         const noteStr = note ? ` (${note})` : '';
         if (!payment || payment === '') {
             return `<span class="payment-badge payment-cashless">Безнал${noteStr}</span>`;
         }
-        
         const lowerPayment = payment.toLowerCase();
-        
-        // Обработка наличных денег (примечания не трогаем)
         if (lowerPayment.includes('нал') || lowerPayment.includes('налич') || /^\d/.test(payment)) {
             const moneyMatch = payment.match(/\d+/);
             if (moneyMatch) return `<span class="payment-badge payment-cash">Нал ${moneyMatch[0]} ₽</span>`;
             return `<span class="payment-badge payment-cash">Наличные</span>`;
         }
-        
-        // Обработка безналичных (добавляем примечание в скобках, если оно есть)
         if (lowerPayment.includes('безнал') || lowerPayment === 'без') {
             return `<span class="payment-badge payment-cashless">Безнал${noteStr}</span>`;
         }
-        
         return `<span class="payment-badge payment-cashless">${payment}${noteStr}</span>`;
     }
 
@@ -183,7 +202,7 @@
         return new Date(dateStr);
     }
 
-    function isDateUpcoming(dateStr) {
+    function kisDateUpcoming(dateStr) {
         let today = new Date();
         today.setHours(0, 0, 0, 0);
         let date = parseDate(dateStr);
@@ -192,7 +211,7 @@
     }
 
     function getUpcomingDates(datesArray, limit = 7) {
-        let futureDates = datesArray.filter(date => isDateUpcoming(date));
+        let futureDates = datesArray.filter(date => kisDateUpcoming(date));
         futureDates.sort((a,b) => parseDate(a) - parseDate(b));
         return futureDates.slice(0, limit);
     }
@@ -201,17 +220,12 @@
         try {
             logDebug('Начинаем загрузку данных из API');
             const noCacheUrl = API_URL + (API_URL.includes('?') ? '&' : '?') + '_nocache=' + Date.now();
-            
             const response = await fetch(noCacheUrl);
             const data = await response.json();
-            
             if (data.error) throw new Error(data.error);
 
-            // Фильтруем и принудительно форматируем даты в нормальный вид ДД.ММ.ГГГГ
             allData = data.filter(item => item !== null && item.date && item.route && item.time).map(item => {
                 let rawDate = item.date;
-                
-                // Если дата пришла в виде длинной системной строки "Mon May 25 2026..."
                 if (typeof rawDate === 'string' && rawDate.includes('GMT')) {
                     let d = new Date(rawDate);
                     if (!isNaN(d.getTime())) {
@@ -222,11 +236,8 @@
                     let day = rawDate.getDate(), month = rawDate.getMonth() + 1, year = rawDate.getFullYear();
                     item.date = (day < 10 ? '0' + day : day) + '.' + (month < 10 ? '0' + month : month) + '.' + year;
                 }
-                
                 return item;
             });
-            
-            logDebug('После обработки и фильтрации записей:', allData.length);
             
             if (allData.length === 0) {
                 document.getElementById('mainContent').innerHTML = '<div class="empty-state">Нет данных. Проверьте записи в Google таблице.</div>';
@@ -234,63 +245,78 @@
                 renderCurrentView();
             }
         } catch (error) {
-            logDebug('ОШИБКА:', error.message);
             document.getElementById('mainContent').innerHTML = `<div class="empty-state">Ошибка загрузки данных: ${error.message}</div>`;
         }
     }
 
-    async function saveCheckToDatabase(rowId, isChecked, checkboxElement) {
-        checkboxElement.disabled = true; // Блокируем чекбокс на время сетевого запроса
+    // ВАРИАНТ 3: отправляем полные точные данные пассажира для точечного поиска строки
+    async function togglePassengerStatus(passengerObj, buttonElement, cardElement) {
+        const isCurrentlyChecked = buttonElement.classList.contains('arrived');
+        const nextCheckedState = !isCurrentlyChecked;
+        
+        buttonElement.disabled = true;
+        
         try {
-            const response = await fetch(API_URL, {
+            // Шлем объект целиком (Дата, Время, Имя, Телефон), сервер сам найдет нужную строчку
+            await fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Важно для обхода ограничений CORS в Google Apps Script Web Apps
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ rowId: rowId, checked: isChecked })
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    date: passengerObj.date,
+                    time: passengerObj.time,
+                    name: passengerObj.name,
+                    phone: passengerObj.phone,
+                    checked: nextCheckedState 
+                })
             });
             
-            // Поскольку используется режим no-cors, мы не можем прочитать ответ, 
-            // но если промис выполнился — значит данные ушли в Google Таблицу.
-            logDebug(`Статус изменен для строки ${rowId}: ${isChecked}`);
+            // Локально обновляем данные в памяти приложения (и у водителя, и у владельца)
+            const item = allData.find(d => 
+                d.date === passengerObj.date && 
+                d.time.substring(0, 5) === passengerObj.time.substring(0, 5) && 
+                d.name === passengerObj.name && 
+                d.phone === passengerObj.phone
+            );
+            if (item) item.checked = nextCheckedState;
             
-            // Локально обновляем состояние в памяти, чтобы при перерисовке оно сохранилось
-            const item = allData.find(d => d.rowId === rowId);
-            if (item) item.checked = isChecked;
+            // Быстро переключаем визуал
+            if (nextCheckedState) {
+                buttonElement.className = 'status-button arrived';
+                buttonElement.innerHTML = '✅ На месте';
+                cardElement.classList.add('checked');
+            } else {
+                buttonElement.className = 'status-button waiting';
+                buttonElement.innerHTML = '⏳ Ожидает';
+                cardElement.classList.remove('checked');
+            }
             
         } catch (error) {
-            alert('Не удалось сохранить отметку. Проверьте интернет.');
-            checkboxElement.checked = !isChecked; // Откатываем обратно в случае ошибки
+            alert('Не удалось сохранить изменения. Проверьте подключение к сети.');
         } finally {
-            checkboxElement.disabled = false;
+            buttonElement.disabled = false;
         }
     }
 
-    function getFilteredData() {
-        return filterByDriver(allData);
-    }
-
+    function getFilteredData() { return filterByDriver(allData); }
+    
     function getUniqueDates() {
         let filtered = getFilteredData();
         let dates = [...new Set(filtered.map(item => item.date))];
         return getUpcomingDates(dates, 7);
     }
-
+    
     function getTotalSeatsForDate(date) {
-        let filtered = getFilteredData();
-        return filtered.filter(item => item.date === date).reduce((sum, item) => sum + item.seats, 0);
+        return getFilteredData().filter(item => item.date === date).reduce((sum, item) => sum + item.seats, 0);
     }
 
     function getAllTimesWithRoutesForOwner(date) {
         let filtered = getFilteredData().filter(item => item.date === date);
         const result = [];
         for (let time of TIME_ORDER) {
-            // Защита: приводим время из таблицы к формату ЧЧ:ММ для точного сравнения
             const itemsAtTime = filtered.filter(item => {
                 if (!item.time) return false;
                 let tStr = String(item.time).trim();
-                // Если пришла полная дата-время из Google (например, содержащая год или пробелы)
                 if (tStr.includes(' ') || tStr.includes(':')) {
                     let match = tStr.match(/(\d{2}):(\d{2})/);
                     if (match) tStr = match[1] + ':' + match[2];
@@ -328,25 +354,6 @@
                 return tStr.substring(0, 5) === time.substring(0, 5);
             });
 
-            if (itemsAtTime.length > 0) {
-                const routesMap = new Map();
-                itemsAtTime.forEach(item => {
-                    let currentSeats = routesMap.get(item.route) || 0;
-                    routesMap.set(item.route, currentSeats + item.seats);
-                });
-                const routes = Object.fromEntries(routesMap);
-                const totalSeats = Object.values(routes).reduce((a,b) => a + b, 0);
-                result.push({ time: time, routes: routes, totalSeats: totalSeats, isEmpty: false });
-            }
-        }
-        return result;
-    }
-
-    function getNonEmptyTimesWithRoutesForDriver(date) {
-        let filtered = getFilteredData().filter(item => item.date === date);
-        const result = [];
-        for (let time of TIME_ORDER) {
-            const itemsAtTime = filtered.filter(item => item.time.substring(0, 5) === time.substring(0, 5));
             if (itemsAtTime.length > 0) {
                 const routesMap = new Map();
                 itemsAtTime.forEach(item => {
@@ -425,17 +432,11 @@
 
     function escapeHtml(str) {
         if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
+        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m] || m));
     }
 
     function renderTimesView() {
         const container = document.getElementById('timesContainer') || document.getElementById('mainContent');
-
         if (!selectedDate) {
             container.innerHTML = '<div class="empty-state">Выберите дату</div>';
             return;
@@ -490,16 +491,46 @@
                                     ${Object.keys(slot.routes).map(route => {
                                         const passengers = getPassengersByDateTime(selectedDate, slot.time, route);
                                         const totalSeats = passengers.reduce((s,p) => s + p.seats, 0);
-                                        return `<div class="route-detail"><div><span class="route-title">${escapeHtml(route.replace('-', ' → '))}</span><span class="route-total">${totalSeats} чел</span></div>${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `<div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО пассажира</th><th>Телефон</th><th>Мест</th><th>Оплата</th><th></th></tr></thead><tbody>${passengers.map((p, idx) => {
-                                            return `<tr>
-                                                <td style="text-align: center;">${idx+1}</td>
-                                                <td><strong>${escapeHtml(p.name)}</strong></td>
-                                                <td>${escapeHtml(p.phone)}</td>
-                                                <td>${p.seats}</td>
-                                                <td class="payment-cell">${formatPayment(p.payment, p.note)}</td>
-                                                <td class="check-cell"><input type="checkbox" class="passenger-check" data-rowid="${p.rowId}" ${p.checked ? 'checked' : ''}></td>
-                                            </tr>`;
-                                        }).join('')}</tbody></table></div>`}</div>`;
+                                        
+                                        return `
+                                        <div class="route-detail">
+                                            <div>
+                                                <span class="route-title">${escapeHtml(route.replace('-', ' → '))}</span>
+                                                <span class="route-total">${totalSeats} чел</span>
+                                            </div>
+                                            ${passengers.length === 0 ? '<div class="empty-state">Нет пассажиров</div>' : `
+                                                <div class="passengers-list">
+                                                    ${passengers.map((p, idx) => {
+                                                        const cardClass = p.checked ? 'passenger-card checked' : 'passenger-card';
+                                                        const btnClass = p.checked ? 'status-button arrived' : 'status-button waiting';
+                                                        const btnText = p.checked ? '✅ На месте' : '⏳ Ожидает';
+                                                        const phoneClean = p.phone ? p.phone.replace(/\D/g, '') : '';
+                                                        
+                                                        // Сериализуем данные в data-атрибуты для легкого доступа при клике
+                                                        return `
+                                                        <div class="${cardClass}" id="pc-${p.rowId}">
+                                                            <div class="passenger-info">
+                                                                <div class="passenger-name-row">
+                                                                    <span class="passenger-index">#${idx+1}</span>
+                                                                    <span class="passenger-name">${escapeHtml(p.name)}</span>
+                                                                    <span class="passenger-seats-badge">${p.seats} мест</span>
+                                                                </div>
+                                                                <div class="passenger-sub-row">
+                                                                    <span class="passenger-phone">📞 <a href="tel:${phoneClean}">${escapeHtml(p.phone)}</a></span>
+                                                                    <span class="passenger-payment">${formatPayment(p.payment, p.note)}</span>
+                                                                </div>
+                                                            </div>
+                                                            <button class="${btnClass}" 
+                                                                    data-date="${p.date}" 
+                                                                    data-time="${p.time}" 
+                                                                    data-name="${escapeHtml(p.name)}" 
+                                                                    data-phone="${escapeHtml(p.phone)}" 
+                                                                    data-rowid="${p.rowId}">${btnText}</button>
+                                                        </div>`;
+                                                    }).join('')}
+                                                </div>
+                                            `}
+                                        </div>`;
                                     }).join('')}
                                 </div>
                             ` : '<div class="empty-state" style="padding: 25px;">Нет данных о маршрутах</div>'}
@@ -510,6 +541,7 @@
             return '';
         }).join('');
 
+        // Логика аккордеонов времени
         document.querySelectorAll('.time-header').forEach(header => {
             const time = header.dataset.time;
             if (!time) return;
@@ -525,6 +557,7 @@
             }
         });
 
+        // Логика аккордеонов сводки
         document.querySelectorAll('.summary-block').forEach(summary => {
             const time = summary.dataset.time;
             if (!time) return;
@@ -545,11 +578,23 @@
             }
         });
 
-        // Назначаем сетевое сохранение на изменение статуса чекбокса
-        document.querySelectorAll('.passenger-check').forEach(cb => {
-            cb.onchange = () => {
-                const rowId = Number(cb.dataset.rowid);
-                saveCheckToDatabase(rowId, cb.checked, cb);
+        // Назначаем триггеры на кнопки изменения статуса
+        document.querySelectorAll('.status-button').forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                
+                const rowId = Number(btn.dataset.rowid);
+                const card = document.getElementById(`pc-${rowId}`);
+                
+                // Собираем точный объект пассажира из атрибутов кнопки
+                const passengerObj = {
+                    date: btn.dataset.date,
+                    time: btn.dataset.time,
+                    name: btn.dataset.name,
+                    phone: btn.dataset.phone
+                };
+                
+                togglePassengerStatus(passengerObj, btn, card);
             };
         });
     }
@@ -569,7 +614,6 @@
         }
     };
 
-    // Загрузка актуальных данных системы
     loadData();
 </script>
 </body>
