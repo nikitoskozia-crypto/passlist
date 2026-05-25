@@ -138,14 +138,21 @@
         .phone-container:active { transform: scale(0.97); }
 
         /* --- ОБНОВЛЕННЫЙ ДИЗАЙН ЯВКИ --- */
+    
         .btn-presence {
             display: inline-flex; align-items: center; justify-content: center;
-            padding: 8px 18px; border-radius: 14px; font-size: 13px; font-weight: 700;
+            padding: 6px 14px; /* Было 8px 18px */
+            border-radius: 12px; /* Чуть уменьшил радиус для пропорции */
+            font-size: 11px; /* Было 13px */
+            font-weight: 700;
             border: 2px solid #e0e6ed; background: transparent; color: #8395a7;
-            cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); min-width: 125px; min-height: 42px;
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            min-width: 100px; /* Было 125px */
+            min-height: 34px; /* Было 42px */
             user-select: none; -webkit-tap-highlight-color: transparent;
             text-transform: uppercase; letter-spacing: 0.3px;
         }
+        
         .btn-presence:active { transform: scale(0.95); }
         .btn-presence.checked { 
             background: linear-gradient(135deg, #3cba0a 0%, #3cba0a 100%); 
