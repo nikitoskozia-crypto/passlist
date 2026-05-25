@@ -161,7 +161,7 @@
 </div>
 
 <script>
-    // Твоя обновленная ссылка на макрос Google
+    // Твоя ссылка на макрос Google
     const API_URL = 'https://script.google.com/macros/s/AKfycbzXNEfQLW7S6GP_FLi_RDBLuK64mNUxkbRmJghXXj1Jtkqx2VtlRzp2DbIj1M03AI4i/exec';
     const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
 
@@ -241,7 +241,7 @@
             });
             
             if (allData.length === 0) {
-                document.getElementById('mainContent').innerHTML = '<div class="empty-state">Нет данных. Проверьте записи in Google таблице.</div>';
+                document.getElementById('mainContent').innerHTML = '<div class="empty-state">Нет данных. Проверьте записи в Google таблице.</div>';
             } else {
                 renderCurrentView();
             }
@@ -250,7 +250,7 @@
         }
     }
 
-    // ИСПРАВЛЕННАЯ ФУНКЦИЯ: Убирает CORS-блокировки и плавно переключает визуал
+    // ПОЛНОСТЬЮ ИСПРАВЛЕННАЯ ФУНКЦИЯ ОТПРАВКИ POST
     async function togglePassengerStatus(passengerObj, buttonElement, cardElement) {
         const isCurrentlyChecked = buttonElement.classList.contains('arrived');
         const nextCheckedState = !isCurrentlyChecked;
@@ -258,12 +258,12 @@
         buttonElement.disabled = true;
         
         try {
-            // Безопасный асинхронный POST запрос с флагом no-cors
-            await fetch(API_URL, {
+            // Передаем заголовки text/plain для обхода CORS и отправляем rowId
+            const response = await fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors', 
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ 
+                    rowId: passengerObj.rowId,
                     date: passengerObj.date,
                     time: passengerObj.time,
                     name: passengerObj.name,
@@ -272,16 +272,18 @@
                 })
             });
             
-            // Сразу же обновляем локальное состояние в оперативной памяти
+            // Если скрипт вернул ответ (в режиме CORS), мы можем обновить локальные стили
             const item = allData.find(d => 
+                d.rowId === passengerObj.rowId || (
                 d.date === passengerObj.date && 
                 d.time.substring(0, 5) === passengerObj.time.substring(0, 5) && 
                 d.name === passengerObj.name && 
                 d.phone === passengerObj.phone
+                )
             );
             if (item) item.checked = nextCheckedState;
             
-            // Мгновенная и красивая смена дизайна кнопки телефона
+            // Визуальное переключение карточки
             if (nextCheckedState) {
                 buttonElement.className = 'status-button arrived';
                 buttonElement.innerHTML = '✅ На месте';
@@ -579,7 +581,7 @@
             }
         });
 
-        // Назначаем триггеры на кнопки изменения статуса
+        // Привязываем триггеры изменения статуса (ПЕРЕДАЕМ rowId)
         document.querySelectorAll('.status-button').forEach(btn => {
             btn.onclick = (e) => {
                 e.stopPropagation();
@@ -588,6 +590,7 @@
                 const card = document.getElementById(`pc-${rowId}`);
                 
                 const passengerObj = {
+                    rowId: rowId, // Ключевой параметр
                     date: btn.dataset.date,
                     time: btn.dataset.time,
                     name: btn.dataset.name,
