@@ -108,15 +108,37 @@
         .passengers-table th, .passengers-table td { padding: 14px 14px; text-align: left; border-bottom: 1px solid #eee; vertical-align: middle; }
         .passengers-table th { background: #f8f9fa; font-weight: 600; color: #555; font-size: 13px; }
 
-        /* --- ОБНОВЛЕННЫЙ ДИЗАЙН БРОНИ (ТЕЛЕФОН) --- */
+        /* --- СТИЛИ ДЛЯ НОМЕРА ТЕЛЕФОНА КАК ССЫЛКИ ДЛЯ ЗВОНКА --- */
+        .phone-link {
+            text-decoration: none;
+            color: inherit; /* сохраняем цвет текста родителя */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            gap: 12px;
+        }
+        .phone-link span {
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            color: #444;
+            font-size: 14px;
+        }
+        /* адаптация для контейнера .phone-container - теперь ссылка внутри него */
         .phone-container {
-            display: inline-flex; align-items: center; justify-content: space-between; gap: 12px;
-            padding: 8px 14px; border-radius: 14px; background: #ffffff; border: 1.5px solid #edf0f5;
-            min-width: 175px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; user-select: none;
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            gap: 12px;
+            padding: 8px 14px; 
+            border-radius: 14px; 
+            background: #ffffff; 
+            border: 1.5px solid #edf0f5;
+            min-width: 175px; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            user-select: none;
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
-        .phone-container span { font-weight: 600; font-variant-numeric: tabular-nums; color: #444; font-size: 14px; }
-        
         .btn-confirm-status {
             background: none; border: none; padding: 0; pointer-events: none; 
             width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
@@ -128,7 +150,7 @@
             background: #f1fcf4; border-color: #c3e6cb; 
             box-shadow: 0 4px 10px rgba(46, 125, 50, 0.1);
         }
-        .phone-container.confirmed span { color: #1b5e20; }
+        .phone-container.confirmed .phone-link span { color: #1b5e20; }
         .phone-container.confirmed .btn-confirm-status { 
             background: linear-gradient(135deg, #00e961 0%, #00e961 100%); 
             border-color: #00e961; 
@@ -136,21 +158,21 @@
         }
         .phone-container.confirmed .btn-confirm-status::after { color: white; }
         .phone-container:active { transform: scale(0.97); }
-
+        
         /* --- УМЕНЬШЕННЫЙ ДИЗАЙН ЯВКИ (КОМПАКТНЫЕ КНОПКИ) --- */
         .btn-presence {
             display: inline-flex; align-items: center; justify-content: center;
-            padding: 6px 12px;        /* уменьшенные отступы */
-            border-radius: 12px;      /* чуть скругленнее, но компактно */
-            font-size: 11px;          /* меньший шрифт */
+            padding: 6px 12px;        
+            border-radius: 12px;      
+            font-size: 11px;          
             font-weight: 700;
             border: 2px solid #e0e6ed; 
             background: transparent; 
             color: #8395a7;
             cursor: pointer; 
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            min-width: 90px;          /* уже, чем было */
-            min-height: 34px;         /* уменьшенная высота */
+            min-width: 90px;          
+            min-height: 34px;         
             user-select: none; 
             -webkit-tap-highlight-color: transparent;
             text-transform: uppercase; 
@@ -193,12 +215,15 @@
             .passengers-table th, .passengers-table td { padding: 10px 10px; }
             .driver-selector { padding: 12px 16px; }
             .driver-selector select { padding: 8px 12px; font-size: 14px; min-width: 140px; }
-            /* на мобилках тоже компактнее */
             .btn-presence {
                 padding: 4px 10px;
                 font-size: 10px;
                 min-width: 80px;
                 min-height: 30px;
+            }
+            /* для мобильных ссылок увеличиваем область нажатия */
+            .phone-link {
+                padding: 4px 0;
             }
         }
     </style>
@@ -220,13 +245,14 @@
             <option value="Валентин К.">🚛 Валентин К.</option>
             <option value="Владимир Л.">🚛 Владимир Л.</option>
             <option value="Влад Н.">🚛 Влад Н.</option>
+            <option value="Андрей К.">🚛 Андрей К.</option>
         </select>
         <div class="driver-note" id="driverNote">👑 Все рейсы</div>
     </div>
 
     <div class="subtitle" id="subtitle">Актуальные рейсы на ближайшие дни</div>
     <div id="mainContent"><div class="loading">Загрузка данных...</div></div>
-    <div class="info-note">Нажмите на дату → время → общая сводка. Изменения синхронизируются автоматически.</div>
+    <div class="info-note">Нажмите на дату → время → общая сводка. Изменения синхронизируются автоматически. 📞 Номер телефона кликабелен для звонка.</div>
 </div>
 
 <script>
@@ -455,6 +481,24 @@
         });
     }
 
+    // Функция для создания номера телефона в виде кликабельной ссылки
+    function renderPhoneLink(phone, isConfirmed, rowId) {
+        // Очистка номера: оставляем только цифры и знак + для международного формата
+        let cleanPhone = phone ? phone.toString().replace(/[^\d+]/g, '') : '';
+        if (!cleanPhone) cleanPhone = ''; // если номер пустой - ссылка не нужна
+        const href = cleanPhone ? `tel:${cleanPhone}` : '#';
+        const linkClass = `phone-link ${cleanPhone ? '' : 'disabled-link'}`;
+        const spanContent = phone ? phone : '—';
+        
+        // Возвращаем ссылку, которая оборачивает номер телефона.
+        // При нажатии на иконку подтверждения (кнопка с галочкой) – она находится вне ссылки, чтобы конфликта не было
+        return `
+            <a href="${href}" class="${linkClass}" style="text-decoration: none; color: inherit; flex: 1;">
+                <span>${spanContent}</span>
+            </a>
+        `;
+    }
+
     function renderTimesView() {
         const container = document.getElementById('timesContainer') || document.getElementById('mainContent');
         if (!selectedDate) return;
@@ -476,7 +520,23 @@
                             <div class="routes-details" id="rd-${slot.time.replace(':', '')}" style="display:none">
                                 ${Object.keys(slot.routes).map(route => {
                                     const passengers = getPassengersByDateTime(selectedDate, slot.time, route);
-                                    return `<div class="route-detail"><div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${passengers.reduce((s,p)=>s+p.seats,0)} чел</span></div><div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон / Бронь</th><th>Мест</th><th>Оплата</th><th>Явка</th></tr></thead><tbody>${passengers.map((p, idx) => `<tr><td>${idx+1}</td><td><strong>${p.name}</strong></td><td><div class="phone-container ${p.confirmed ? 'confirmed' : ''}" data-rowid="${p.rowId}"><span>${p.phone}</span><button class="btn-confirm-status"></button></div></td><td>${p.seats}</td><td>${formatPayment(p.payment, p.note)}</td><td><button class="btn-presence ${p.checked ? 'checked' : ''}" data-rowid="${p.rowId}">${p.checked ? '✅ На месте' : '⏳ Ожидание'}</button></td></tr>`).join('')}</tbody></table></div></div>`;
+                                    return `<div class="route-detail"><div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${passengers.reduce((s,p)=>s+p.seats,0)} чел</span></div><div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон / Бронь</th><th>Мест</th><th>Оплата</th><th>Явка</th></tr></thead><tbody>${passengers.map((p, idx) => {
+                                        // Создаём телефонную ссылку
+                                        const phoneLinkHtml = renderPhoneLink(p.phone, p.confirmed, p.rowId);
+                                        return `<tr>
+                                            <td>${idx+1}</td>
+                                            <td><strong>${p.name}</strong></td>
+                                            <td>
+                                                <div class="phone-container ${p.confirmed ? 'confirmed' : ''}" data-rowid="${p.rowId}">
+                                                    ${phoneLinkHtml}
+                                                    <button class="btn-confirm-status"></button>
+                                                </div>
+                                            </td>
+                                            <td>${p.seats}</td>
+                                            <td>${formatPayment(p.payment, p.note)}</td>
+                                            <td><button class="btn-presence ${p.checked ? 'checked' : ''}" data-rowid="${p.rowId}">${p.checked ? '✅ На месте' : '⏳ Ожидание'}</button></td>
+                                        </tr>`;
+                                    }).join('')}</tbody></table></div></div>`;
                                 }).join('')}
                             </div>
                         </div>
@@ -484,6 +544,7 @@
             } return '';
         }).join('');
 
+        // Прикрепляем обработчики для раскрытия/сворачивания
         document.querySelectorAll('.time-header').forEach(h => h.onclick = () => {
             const content = document.getElementById(`tc-${h.dataset.time.replace(':', '')}`);
             content.style.display = content.style.display === 'none' ? 'block' : 'none';
@@ -495,7 +556,20 @@
             s.style.background = details.style.display === 'none' ? '#f8f9fa' : '#eef2f6';
         });
 
-        document.querySelectorAll('.phone-container').forEach(c => c.onclick = () => saveCheckToDatabase(Number(c.dataset.rowid), !c.classList.contains('confirmed'), c, 'confirmed'));
+        // Обработчики для кнопок подтверждения и явки
+        document.querySelectorAll('.phone-container').forEach(c => {
+            // Теперь кнопка подтверждения (галочка) остаётся, но клик по контейнеру не должен мешать звонку,
+            // иначе пользователь может случайно подтвердить вместо звонка.
+            // Лучше повесить обработчик только на саму кнопку .btn-confirm-status, а не на весь контейнер.
+            const btnConfirm = c.querySelector('.btn-confirm-status');
+            if (btnConfirm) {
+                btnConfirm.onclick = (e) => {
+                    e.stopPropagation(); // Останавливаем всплытие, чтобы звонок не сработал
+                    saveCheckToDatabase(Number(c.dataset.rowid), !c.classList.contains('confirmed'), c, 'confirmed');
+                };
+            }
+        });
+        
         document.querySelectorAll('.btn-presence').forEach(b => b.onclick = () => saveCheckToDatabase(Number(b.dataset.rowid), !b.classList.contains('checked'), b, 'present'));
     }
 
