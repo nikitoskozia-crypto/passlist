@@ -37,7 +37,6 @@
             transition: all 0.1s ease;
         }
         .driver-selector select:active { transform: scale(0.98); }
-        .driver-note { font-size: 13px; color: #e67e22; margin-left: auto; }
 
         /* --- ОБНОВЛЕННЫЙ ДИЗАЙН КАЛЕНДАРЯ --- */
         .dates-scroll { 
@@ -312,7 +311,6 @@
             <option value="Влад Н.">🚛 Влад Н.</option>
             <option value="Андрей К.">🚛 Андрей К.</option>
         </select>
-        <div class="driver-note" id="driverNote">👑 Все рейсы</div>
     </div>
 
     <div class="subtitle" id="subtitle">Актуальные рейсы на ближайшие дни</div>
@@ -328,7 +326,6 @@
     let currentView = 'dates';
     let selectedDate = null;
     let currentDriver = 'all';
-    let pendingSaves = new Map(); // Для отслеживания сохранений
 
     function showToast(message, isError = false) {
         const existingToast = document.querySelector('.toast');
@@ -415,18 +412,14 @@
     }
 
     async function saveCheckToDatabase(rowId, isChecked, element, type) {
-        // Блокируем повторные нажатия
         if (element.classList.contains('saving')) return;
         
-        // Добавляем класс сохранения для визуального отклика
         element.classList.add('saving');
         
-        // Мгновенное визуальное обновление (оптимистичное обновление)
         const oldState = type === 'confirmed' ? 
             element.closest('.phone-container')?.classList.contains('confirmed') : 
             element.classList.contains('checked');
         
-        // Мгновенно меняем состояние на визуале
         if (type === 'confirmed') {
             const container = element.closest('.phone-container');
             if (container) {
@@ -446,7 +439,6 @@
             }
         }
         
-        // Обновляем данные в памяти
         const item = allData.find(d => d.rowId === rowId);
         if (item) {
             if (type === 'confirmed') item.confirmed = isChecked;
@@ -454,8 +446,7 @@
         }
         
         try {
-            // Отправляем запрос без ожидания (fire-and-forget с обработкой ошибок)
-            const response = await fetch(API_URL, {
+            await fetch(API_URL, {
                 method: 'POST',
                 mode: 'no-cors', 
                 headers: { 'Content-Type': 'application/json' },
@@ -464,7 +455,6 @@
             
             showToast(type === 'confirmed' ? (isChecked ? '✅ Бронь подтверждена' : '❌ Бронь отменена') : (isChecked ? '✅ Пассажир на месте' : '⏳ Ожидание пассажира'));
         } catch (error) {
-            // Если ошибка - откатываем изменение
             console.error('Save error:', error);
             if (type === 'confirmed') {
                 const container = element.closest('.phone-container');
@@ -689,7 +679,6 @@
             } return '';
         }).join('');
 
-        // Обработчики для раскрытия
         document.querySelectorAll('.time-header').forEach(h => {
             h.onclick = (e) => {
                 e.stopPropagation();
@@ -711,7 +700,6 @@
             };
         });
 
-        // Обработчики для кнопок подтверждения брони
         document.querySelectorAll('.btn-confirm-status').forEach(btn => {
             btn.onclick = (e) => {
                 e.stopPropagation();
@@ -724,7 +712,6 @@
             };
         });
 
-        // Обработчики для кнопок явки
         document.querySelectorAll('.btn-presence').forEach(btn => {
             btn.onclick = (e) => {
                 e.stopPropagation();
@@ -745,18 +732,13 @@
         }
         
         const subtitle = document.getElementById('subtitle');
-        const driverNote = document.getElementById('driverNote');
-        
         if (currentDriver === 'all') {
-            if (subtitle) subtitle.innerHTML = 'Актуальные рейсы на ближайшие дни';
-            if (driverNote) driverNote.innerHTML = '👑 Все рейсы';
+            subtitle.innerHTML = 'Актуальные рейсы на ближайшие дни';
         } else {
-            if (subtitle) subtitle.innerHTML = `Рейсы для ${currentDriver}`;
-            if (driverNote) driverNote.innerHTML = `🚛 Только рейсы: ${currentDriver}`;
+            subtitle.innerHTML = `Рейсы для ${currentDriver}`;
         }
     }
 
-    // Настройка обработчиков
     const driverSelect = document.getElementById('driverSelect');
     if (driverSelect) {
         driverSelect.onchange = (e) => {
