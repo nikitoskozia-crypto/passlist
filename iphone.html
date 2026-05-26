@@ -10,8 +10,8 @@
         body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; background: #f0f2f5; color: #1a1a1a; padding: 20px; }
         .container { max-width: 1200px; margin: 0 auto; }
         h1 { font-size: 28px; margin-bottom: 8px; color: #1e3a5f; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-        .back-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #1e3a5f; padding: 5px 10px; border-radius: 40px; min-width: 44px; min-height: 44px; }
-        .back-btn:active { background: #e0e7f0; }
+        .back-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #1e3a5f; padding: 5px 10px; border-radius: 40px; min-width: 44px; min-height: 44px; transition: background 0.1s ease; }
+        .back-btn:active { background: #e0e7f0; transform: scale(0.95); }
         .subtitle { color: #666; margin-bottom: 20px; border-left: 4px solid #1e3a5f; padding-left: 15px; font-size: 14px; }
 
         .driver-selector {
@@ -33,7 +33,10 @@
             font-size: 15px;
             background: white;
             min-width: 180px;
+            cursor: pointer;
+            transition: all 0.1s ease;
         }
+        .driver-selector select:active { transform: scale(0.98); }
         .driver-note { font-size: 13px; color: #e67e22; margin-left: auto; }
 
         /* --- ОБНОВЛЕННЫЙ ДИЗАЙН КАЛЕНДАРЯ --- */
@@ -59,18 +62,18 @@
             justify-content: center;
             gap: 4px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             flex-shrink: 0;
             border: 1px solid rgba(0,0,0,0.03);
         }
 
-        .date-chip:active { transform: scale(0.95); }
+        .date-chip:active { transform: scale(0.96); background: #f0f2f5; }
 
         .date-chip.active { 
             background: linear-gradient(135deg, #1e3a5f 0%, #2c5387 100%); 
             color: white; 
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(30, 58, 95, 0.25);
             border: none;
         }
@@ -89,13 +92,13 @@
         /* ------------------------------------ */
 
         .time-group { background: white; border-radius: 20px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .time-header { background: #1e3a5f; color: white; padding: 16px 24px; font-weight: 700; font-size: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 60px; }
-        .time-header:active { background: #2c4a6e; }
+        .time-header { background: #1e3a5f; color: white; padding: 16px 24px; font-weight: 700; font-size: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 60px; transition: background 0.1s ease; }
+        .time-header:active { background: #2c4a6e; transform: scale(0.99); }
         .time-header .time-seats { font-size: 16px; background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 40px; }
         .time-content { padding: 0; display: none; }
 
-        .summary-block { background: #f8f9fa; padding: 16px 24px; cursor: pointer; border-bottom: 1px solid #eef2f6; display: flex; justify-content: space-between; align-items: center; }
-        .summary-block:active { background: #eef2f6; }
+        .summary-block { background: #f8f9fa; padding: 16px 24px; cursor: pointer; border-bottom: 1px solid #eef2f6; display: flex; justify-content: space-between; align-items: center; transition: background 0.1s ease; }
+        .summary-block:active { background: #eef2f6; transform: scale(0.99); }
         .summary-title { font-weight: 700; font-size: 17px; color: #1e3a5f; }
         .summary-seats { background: #e0e7f0; padding: 6px 16px; border-radius: 40px; font-size: 14px; }
 
@@ -111,12 +114,16 @@
         /* --- СТИЛИ ДЛЯ НОМЕРА ТЕЛЕФОНА КАК ССЫЛКИ ДЛЯ ЗВОНКА --- */
         .phone-link {
             text-decoration: none;
-            color: inherit; /* сохраняем цвет текста родителя */
-            display: flex;
+            color: inherit;
+            display: inline-flex;
             align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            gap: 12px;
+            flex: 1;
+            cursor: pointer;
+            transition: opacity 0.1s ease;
+        }
+        .phone-link:active {
+            opacity: 0.6;
+            transform: scale(0.98);
         }
         .phone-link span {
             font-weight: 600;
@@ -124,7 +131,7 @@
             color: #444;
             font-size: 14px;
         }
-        /* адаптация для контейнера .phone-container - теперь ссылка внутри него */
+        
         .phone-container {
             display: inline-flex; 
             align-items: center; 
@@ -135,29 +142,55 @@
             background: #ffffff; 
             border: 1.5px solid #edf0f5;
             min-width: 175px; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1); 
             user-select: none;
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
-        .btn-confirm-status {
-            background: none; border: none; padding: 0; pointer-events: none; 
-            width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
-            border-radius: 50%; border: 2px solid #d1d8e0; transition: all 0.3s ease; position: relative;
+        .phone-container:active {
+            transform: scale(0.97);
+            background: #f5f5f5;
         }
-        .btn-confirm-status::after { content: '✓'; color: transparent; font-size: 12px; font-weight: 900; transition: color 0.2s ease; }
+        
+        .btn-confirm-status {
+            background: none; 
+            border: none; 
+            padding: 0; 
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 2px solid #d1d8e0;
+            transition: all 0.1s ease;
+            background: white;
+            flex-shrink: 0;
+        }
+        .btn-confirm-status:active { 
+            transform: scale(0.85);
+            background: #e0e7f0;
+        }
+        .btn-confirm-status::after { 
+            content: '✓'; 
+            color: transparent; 
+            font-size: 13px; 
+            font-weight: 900; 
+            transition: all 0.1s ease; 
+        }
         
         .phone-container.confirmed { 
-            background: #f1fcf4; border-color: #c3e6cb; 
+            background: #f1fcf4; 
+            border-color: #c3e6cb; 
             box-shadow: 0 4px 10px rgba(46, 125, 50, 0.1);
         }
         .phone-container.confirmed .phone-link span { color: #1b5e20; }
         .phone-container.confirmed .btn-confirm-status { 
-            background: linear-gradient(135deg, #00e961 0%, #00e961 100%); 
-            border-color: #00e961; 
+            background: linear-gradient(135deg, #00c853 0%, #00a844 100%); 
+            border-color: #00a844; 
             box-shadow: 0 2px 5px rgba(39, 174, 96, 0.3);
         }
         .phone-container.confirmed .btn-confirm-status::after { color: white; }
-        .phone-container:active { transform: scale(0.97); }
         
         /* --- УМЕНЬШЕННЫЙ ДИЗАЙН ЯВКИ (КОМПАКТНЫЕ КНОПКИ) --- */
         .btn-presence {
@@ -170,7 +203,7 @@
             background: transparent; 
             color: #8395a7;
             cursor: pointer; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            transition: all 0.1s ease; 
             min-width: 90px;          
             min-height: 34px;         
             user-select: none; 
@@ -180,18 +213,28 @@
             white-space: pre-line;
         }
         
-        .btn-presence:active { transform: scale(0.95); }
+        .btn-presence:active { 
+            transform: scale(0.92);
+            background: #e0e7f0;
+        }
         .btn-presence.checked { 
             background: linear-gradient(135deg, #3cba0a 0%, #3cba0a 100%); 
             color: white; 
             border-color: #3cba0a; 
             box-shadow: 0 4px 12px rgba(68, 189, 50, 0.35); 
         }
+        .btn-presence.checked:active {
+            background: #2d8f08;
+            transform: scale(0.92);
+        }
         
-        /* Состояния загрузки */
-        .phone-container.loading-db { opacity: 0.6; cursor: wait; filter: grayscale(0.5); }
-        .btn-presence:disabled { opacity: 0.6; cursor: wait; }
-
+        /* Анимация загрузки */
+        .btn-presence.saving, .btn-confirm-status.saving {
+            opacity: 0.5;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+        
         .payment-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; white-space: nowrap; }
         .payment-cash { background: #d4edda; color: #04701d; border: 1px solid #c3e6cb; }
         .payment-cashless { background: #e8d9ff; color: #2b0367; border: 1px solid #d1c4e9; }
@@ -199,8 +242,29 @@
         .empty-state { text-align: center; padding: 50px; background: white; border-radius: 20px; color: #999; font-size: 15px; }
         .loading { text-align: center; padding: 50px; color: #666; font-size: 15px; }
         .info-note { background: #e8f4fd; border-radius: 12px; padding: 12px 18px; margin-top: 20px; font-size: 13px; color: #1e3a5f; }
-        .check-cell { text-align: center !important; width: 140px; }
-        .zero-badge { background: rgba(255,255,255,0.2); }
+        
+        /* Всплывающее уведомление */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e3a5f;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 13px;
+            z-index: 1000;
+            animation: fadeInOut 1.5s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        }
 
         @media (max-width: 700px) {
             body { padding: 12px; }
@@ -221,10 +285,11 @@
                 min-width: 80px;
                 min-height: 30px;
             }
-            /* для мобильных ссылок увеличиваем область нажатия */
-            .phone-link {
-                padding: 4px 0;
+            .btn-confirm-status {
+                width: 34px;
+                height: 34px;
             }
+            .toast { font-size: 12px; padding: 8px 16px; white-space: nowrap; }
         }
     </style>
 </head>
@@ -252,7 +317,7 @@
 
     <div class="subtitle" id="subtitle">Актуальные рейсы на ближайшие дни</div>
     <div id="mainContent"><div class="loading">Загрузка данных...</div></div>
-    <div class="info-note">Нажмите на дату → время → общая сводка. Изменения синхронизируются автоматически. 📞 Номер телефона кликабелен для звонка.</div>
+    <div class="info-note">Нажмите на дату → время → общая сводка. Изменения синхронизируются автоматически.</div>
 </div>
 
 <script>
@@ -263,8 +328,22 @@
     let currentView = 'dates';
     let selectedDate = null;
     let currentDriver = 'all';
+    let pendingSaves = new Map(); // Для отслеживания сохранений
 
-    function logDebug(msg, data) { console.log(`[DEBUG] ${msg}`, data || ''); }
+    function showToast(message, isError = false) {
+        const existingToast = document.querySelector('.toast');
+        if (existingToast) existingToast.remove();
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        toast.style.background = isError ? '#c62828' : '#1e3a5f';
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 1500);
+    }
 
     function formatPayment(payment, note) {
         const noteStr = note ? ` (${note})` : '';
@@ -336,30 +415,80 @@
     }
 
     async function saveCheckToDatabase(rowId, isChecked, element, type) {
-        if (type === 'confirmed') element.classList.add('loading-db');
-        else element.disabled = true;
+        // Блокируем повторные нажатия
+        if (element.classList.contains('saving')) return;
+        
+        // Добавляем класс сохранения для визуального отклика
+        element.classList.add('saving');
+        
+        // Мгновенное визуальное обновление (оптимистичное обновление)
+        const oldState = type === 'confirmed' ? 
+            element.closest('.phone-container')?.classList.contains('confirmed') : 
+            element.classList.contains('checked');
+        
+        // Мгновенно меняем состояние на визуале
+        if (type === 'confirmed') {
+            const container = element.closest('.phone-container');
+            if (container) {
+                if (isChecked) {
+                    container.classList.add('confirmed');
+                } else {
+                    container.classList.remove('confirmed');
+                }
+            }
+        } else {
+            if (isChecked) {
+                element.classList.add('checked');
+                element.innerHTML = '✅ На месте';
+            } else {
+                element.classList.remove('checked');
+                element.innerHTML = '⏳ Ожидание';
+            }
+        }
+        
+        // Обновляем данные в памяти
+        const item = allData.find(d => d.rowId === rowId);
+        if (item) {
+            if (type === 'confirmed') item.confirmed = isChecked;
+            else item.checked = isChecked;
+        }
+        
         try {
-            await fetch(API_URL, {
+            // Отправляем запрос без ожидания (fire-and-forget с обработкой ошибок)
+            const response = await fetch(API_URL, {
                 method: 'POST',
                 mode: 'no-cors', 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ rowId: rowId, checked: isChecked, type: type })
             });
-            const item = allData.find(d => d.rowId === rowId);
-            if (item) {
-                if (type === 'confirmed') item.confirmed = isChecked;
-                else item.checked = isChecked;
-            }
-            if (type === 'confirmed') element.classList.toggle('confirmed', isChecked);
-            else {
-                element.classList.toggle('checked', isChecked);
-                element.innerHTML = isChecked ? '✅ На месте' : '⏳ Ожидание';
-            }
+            
+            showToast(type === 'confirmed' ? (isChecked ? '✅ Бронь подтверждена' : '❌ Бронь отменена') : (isChecked ? '✅ Пассажир на месте' : '⏳ Ожидание пассажира'));
         } catch (error) {
-            alert('Ошибка сохранения.');
+            // Если ошибка - откатываем изменение
+            console.error('Save error:', error);
+            if (type === 'confirmed') {
+                const container = element.closest('.phone-container');
+                if (container) {
+                    if (oldState) {
+                        container.classList.add('confirmed');
+                    } else {
+                        container.classList.remove('confirmed');
+                    }
+                }
+                if (item) item.confirmed = oldState;
+            } else {
+                if (oldState) {
+                    element.classList.add('checked');
+                    element.innerHTML = '✅ На месте';
+                } else {
+                    element.classList.remove('checked');
+                    element.innerHTML = '⏳ Ожидание';
+                }
+                if (item) item.checked = oldState;
+            }
+            showToast('❌ Ошибка сохранения', true);
         } finally {
-            if (type === 'confirmed') element.classList.remove('loading-db');
-            else element.disabled = false;
+            element.classList.remove('saving');
         }
     }
 
@@ -481,28 +610,17 @@
         });
     }
 
-    // Функция для создания номера телефона в виде кликабельной ссылки
-    function renderPhoneLink(phone, isConfirmed, rowId) {
-        // Очистка номера: оставляем только цифры и знак + для международного формата
-        let cleanPhone = phone ? phone.toString().replace(/[^\d+]/g, '') : '';
-        if (!cleanPhone) cleanPhone = ''; // если номер пустой - ссылка не нужна
-        const href = cleanPhone ? `tel:${cleanPhone}` : '#';
-        const linkClass = `phone-link ${cleanPhone ? '' : 'disabled-link'}`;
-        const spanContent = phone ? phone : '—';
-        
-        // Возвращаем ссылку, которая оборачивает номер телефона.
-        // При нажатии на иконку подтверждения (кнопка с галочкой) – она находится вне ссылки, чтобы конфликта не было
-        return `
-            <a href="${href}" class="${linkClass}" style="text-decoration: none; color: inherit; flex: 1;">
-                <span>${spanContent}</span>
-            </a>
-        `;
+    function cleanPhoneNumber(phone) {
+        if (!phone) return '';
+        return phone.toString().replace(/[^\d+]/g, '');
     }
 
     function renderTimesView() {
-        const container = document.getElementById('timesContainer') || document.getElementById('mainContent');
-        if (!selectedDate) return;
+        const container = document.getElementById('timesContainer');
+        if (!container || !selectedDate) return;
+        
         let timeSlots = (currentDriver === 'all') ? getAllTimesWithRoutesForOwner(selectedDate) : getNonEmptyTimesWithRoutesForDriver(selectedDate);
+        
         if (timeSlots.length === 0) {
             container.innerHTML = '<div class="empty-state">Нет рейсов</div>';
             return;
@@ -514,29 +632,56 @@
             } else if (!slot.isEmpty) {
                 return `
                     <div class="time-group">
-                        <div class="time-header" data-time="${slot.time}"><span>${slot.time}</span><span class="time-seats">${slot.totalSeats} мест</span></div>
+                        <div class="time-header" data-time="${slot.time}">
+                            <span>${slot.time}</span>
+                            <span class="time-seats">${slot.totalSeats} мест</span>
+                        </div>
                         <div class="time-content" id="tc-${slot.time.replace(':', '')}" style="display:none">
-                            <div class="summary-block" data-time="${slot.time}"><span class="summary-title">Общая сводка</span><span class="summary-seats">${slot.totalSeats} мест</span></div>
+                            <div class="summary-block" data-time="${slot.time}">
+                                <span class="summary-title">Общая сводка</span>
+                                <span class="summary-seats">${slot.totalSeats} мест</span>
+                            </div>
                             <div class="routes-details" id="rd-${slot.time.replace(':', '')}" style="display:none">
                                 ${Object.keys(slot.routes).map(route => {
                                     const passengers = getPassengersByDateTime(selectedDate, slot.time, route);
-                                    return `<div class="route-detail"><div><span class="route-title">${route.replace('-', ' → ')}</span><span class="route-total">${passengers.reduce((s,p)=>s+p.seats,0)} чел</span></div><div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон / Бронь</th><th>Мест</th><th>Оплата</th><th>Явка</th></tr></thead><tbody>${passengers.map((p, idx) => {
-                                        // Создаём телефонную ссылку
-                                        const phoneLinkHtml = renderPhoneLink(p.phone, p.confirmed, p.rowId);
-                                        return `<tr>
-                                            <td>${idx+1}</td>
-                                            <td><strong>${p.name}</strong></td>
-                                            <td>
-                                                <div class="phone-container ${p.confirmed ? 'confirmed' : ''}" data-rowid="${p.rowId}">
-                                                    ${phoneLinkHtml}
-                                                    <button class="btn-confirm-status"></button>
-                                                </div>
-                                            </td>
-                                            <td>${p.seats}</td>
-                                            <td>${formatPayment(p.payment, p.note)}</td>
-                                            <td><button class="btn-presence ${p.checked ? 'checked' : ''}" data-rowid="${p.rowId}">${p.checked ? '✅ На месте' : '⏳ Ожидание'}</button></td>
-                                        </tr>`;
-                                    }).join('')}</tbody></table></div></div>`;
+                                    return `<div class="route-detail">
+                                        <div>
+                                            <span class="route-title">${route.replace('-', ' → ')}</span>
+                                            <span class="route-total">${passengers.reduce((s,p)=>s+p.seats,0)} чел</span>
+                                        </div>
+                                        <div class="table-wrapper">
+                                            <table class="passengers-table">
+                                                <thead>
+                                                    <tr><th>№</th><th>ФИО</th><th>Телефон / Бронь</th><th>Мест</th><th>Оплата</th><th>Явка</th></tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${passengers.map((p, idx) => {
+                                                        const cleanPhone = cleanPhoneNumber(p.phone);
+                                                        const phoneDisplay = p.phone || '—';
+                                                        const phoneLinkHtml = cleanPhone ? 
+                                                            `<a href="tel:${cleanPhone}" class="phone-link" onclick="event.stopPropagation();">
+                                                                <span>${phoneDisplay}</span>
+                                                            </a>` : 
+                                                            `<span class="phone-link" style="cursor: default;"><span>${phoneDisplay}</span></span>`;
+                                                        
+                                                        return `<tr>
+                                                            <td>${idx+1}</td>
+                                                            <td><strong>${p.name}</strong></td>
+                                                            <td>
+                                                                <div class="phone-container ${p.confirmed ? 'confirmed' : ''}" data-rowid="${p.rowId}">
+                                                                    ${phoneLinkHtml}
+                                                                    <button class="btn-confirm-status" data-rowid="${p.rowId}"></button>
+                                                                </div>
+                                                            </td>
+                                                            <td>${p.seats}</td>
+                                                            <td>${formatPayment(p.payment, p.note)}</td>
+                                                            <td><button class="btn-presence ${p.checked ? 'checked' : ''}" data-rowid="${p.rowId}">${p.checked ? '✅ На месте' : '⏳ Ожидание'}</button></td>
+                                                        </tr>`;
+                                                    }).join('')}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>`;
                                 }).join('')}
                             </div>
                         </div>
@@ -544,61 +689,92 @@
             } return '';
         }).join('');
 
-        // Прикрепляем обработчики для раскрытия/сворачивания
-        document.querySelectorAll('.time-header').forEach(h => h.onclick = () => {
-            const content = document.getElementById(`tc-${h.dataset.time.replace(':', '')}`);
-            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+        // Обработчики для раскрытия
+        document.querySelectorAll('.time-header').forEach(h => {
+            h.onclick = (e) => {
+                e.stopPropagation();
+                const content = document.getElementById(`tc-${h.dataset.time.replace(':', '')}`);
+                if (content) {
+                    content.style.display = content.style.display === 'none' ? 'block' : 'none';
+                }
+            };
         });
 
-        document.querySelectorAll('.summary-block').forEach(s => s.onclick = () => {
-            const details = document.getElementById(`rd-${s.dataset.time.replace(':', '')}`);
-            details.style.display = details.style.display === 'none' ? 'block' : 'none';
-            s.style.background = details.style.display === 'none' ? '#f8f9fa' : '#eef2f6';
+        document.querySelectorAll('.summary-block').forEach(s => {
+            s.onclick = (e) => {
+                e.stopPropagation();
+                const details = document.getElementById(`rd-${s.dataset.time.replace(':', '')}`);
+                if (details) {
+                    details.style.display = details.style.display === 'none' ? 'block' : 'none';
+                    s.style.background = details.style.display === 'none' ? '#f8f9fa' : '#eef2f6';
+                }
+            };
         });
 
-        // Обработчики для кнопок подтверждения и явки
-        document.querySelectorAll('.phone-container').forEach(c => {
-            // Теперь кнопка подтверждения (галочка) остаётся, но клик по контейнеру не должен мешать звонку,
-            // иначе пользователь может случайно подтвердить вместо звонка.
-            // Лучше повесить обработчик только на саму кнопку .btn-confirm-status, а не на весь контейнер.
-            const btnConfirm = c.querySelector('.btn-confirm-status');
-            if (btnConfirm) {
-                btnConfirm.onclick = (e) => {
-                    e.stopPropagation(); // Останавливаем всплытие, чтобы звонок не сработал
-                    saveCheckToDatabase(Number(c.dataset.rowid), !c.classList.contains('confirmed'), c, 'confirmed');
-                };
-            }
+        // Обработчики для кнопок подтверждения брони
+        document.querySelectorAll('.btn-confirm-status').forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const container = btn.closest('.phone-container');
+                if (container) {
+                    const rowId = Number(container.dataset.rowid);
+                    const isConfirmed = container.classList.contains('confirmed');
+                    saveCheckToDatabase(rowId, !isConfirmed, btn, 'confirmed');
+                }
+            };
         });
-        
-        document.querySelectorAll('.btn-presence').forEach(b => b.onclick = () => saveCheckToDatabase(Number(b.dataset.rowid), !b.classList.contains('checked'), b, 'present'));
+
+        // Обработчики для кнопок явки
+        document.querySelectorAll('.btn-presence').forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const rowId = Number(btn.dataset.rowid);
+                const isChecked = btn.classList.contains('checked');
+                saveCheckToDatabase(rowId, !isChecked, btn, 'present');
+            };
+        });
     }
 
     function renderCurrentView() {
         if (currentView === 'dates') renderDatesView();
         else renderTimesView();
-        document.getElementById('backBtn').style.display = currentView === 'dates' ? 'none' : 'inline-block';
+        
+        const backBtn = document.getElementById('backBtn');
+        if (backBtn) {
+            backBtn.style.display = currentView === 'dates' ? 'none' : 'inline-block';
+        }
+        
         const subtitle = document.getElementById('subtitle');
+        const driverNote = document.getElementById('driverNote');
+        
         if (currentDriver === 'all') {
-            subtitle.innerHTML = 'Актуальные рейсы на ближайшие дни';
-            document.getElementById('driverNote').innerHTML = '👑 Все рейсы';
+            if (subtitle) subtitle.innerHTML = 'Актуальные рейсы на ближайшие дни';
+            if (driverNote) driverNote.innerHTML = '👑 Все рейсы';
         } else {
-            subtitle.innerHTML = `Рейсы для ${currentDriver}`;
-            document.getElementById('driverNote').innerHTML = `🚛 Только рейсы: ${currentDriver}`;
+            if (subtitle) subtitle.innerHTML = `Рейсы для ${currentDriver}`;
+            if (driverNote) driverNote.innerHTML = `🚛 Только рейсы: ${currentDriver}`;
         }
     }
 
-    document.getElementById('driverSelect').onchange = (e) => {
-        currentDriver = e.target.value;
-        selectedDate = null;
-        currentView = 'dates';
-        renderCurrentView();
-    };
+    // Настройка обработчиков
+    const driverSelect = document.getElementById('driverSelect');
+    if (driverSelect) {
+        driverSelect.onchange = (e) => {
+            currentDriver = e.target.value;
+            selectedDate = null;
+            currentView = 'dates';
+            renderCurrentView();
+        };
+    }
 
-    document.getElementById('backBtn').onclick = () => {
-        currentView = 'dates';
-        selectedDate = null;
-        renderCurrentView();
-    };
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+        backBtn.onclick = () => {
+            currentView = 'dates';
+            selectedDate = null;
+            renderCurrentView();
+        };
+    }
 
     loadData();
 </script>
