@@ -19,13 +19,11 @@
 const PROXY_URL='https://site44.nikitoskozia.workers.dev/',APP_TOKEN='tWWpNIKI66HQ4-B',TIME_ORDER=['03:30','10:00','11:30','14:00','15:30','16:30','18:00','21:30'];
 let allData=[],currentView='dates',selectedDate=null,currentDriver='all';
 
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ: Добавлены credentials и mode для iPhone/Safari
+// ОЧИЩЕННАЯ ФУНКЦИЯ: Убраны конфликтующие credentials для Safari и выставлен безопасный text/plain
 async function callProxy(a,d={}){
     let r=await fetch(PROXY_URL,{
         method:'POST',
-        mode:'cors',
-        credentials:'include', // Важно для Safari при использовании CORS
-        headers:{'Content-Type':'application/json','Accept':'application/json'},
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
         body:JSON.stringify({appToken:APP_TOKEN,action:a,...d})
     });
     if(!r.ok)throw new Error(`HTTP ${r.status}`);
