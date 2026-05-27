@@ -1,52 +1,308 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=yes">
-<meta name="theme-color" content="#1e3a5f">
-<title>Владелец | Учёт пассажиров</title>
-<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,sans-serif;background:#f0f2f5;color:#1a1a1a;padding:20px}.container{max-width:1200px;margin:0 auto}h1{font-size:28px;margin-bottom:8px;color:#1e3a5f;display:flex;align-items:center;gap:15px;flex-wrap:wrap}.back-btn{background:0 0;border:none;font-size:24px;cursor:pointer;color:#1e3a5f;padding:5px 10px;border-radius:40px;min-width:44px;min-height:44px}.back-btn:active{background:#e0e7f0;transform:scale(.95)}.subtitle{color:#666;margin-bottom:20px;border-left:4px solid #1e3a5f;padding-left:15px;font-size:14px}.driver-selector{background:#fff;border-radius:20px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:15px;flex-wrap:wrap;box-shadow:0 2px 8px #0000000d}.driver-selector label{font-weight:600;color:#1e3a5f;font-size:15px}.driver-selector select{padding:10px 16px;border-radius:40px;border:1px solid #ddd;font-size:15px;background:#fff;min-width:180px;cursor:pointer}.dates-scroll{display:flex;gap:14px;overflow-x:auto;padding:10px 5px 25px;margin-bottom:10px;-webkit-overflow-scrolling:touch;scrollbar-width:none}.date-chip{background:#fff;border-radius:18px;padding:12px 18px;min-width:85px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 4px 12px #0000000f;cursor:pointer;flex-shrink:0;border:1px solid #00000008}.date-chip.active{background:linear-gradient(135deg,#1e3a5f,#2c5387);color:#fff;transform:translateY(-2px);box-shadow:0 8px 20px #1e3a5f40;border:none}.date-chip .date-day-num{font-size:22px;font-weight:800}.date-chip .date-month{font-size:11px;text-transform:uppercase;opacity:.7}.date-chip .date-seats{font-size:10px;background:#1e3a5f14;padding:3px 8px;border-radius:8px;font-weight:600;margin-top:4px}.date-chip.active .date-seats{background:#778ea347;color:#fff}.time-group{background:#fff;border-radius:20px;margin-bottom:20px;overflow:hidden;box-shadow:0 2px 8px #0000000d}.time-header{background:#1e3a5f;color:#fff;padding:16px 24px;font-weight:700;font-size:20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;min-height:60px}.time-header .time-seats{font-size:16px;background:#ffffff33;padding:6px 16px;border-radius:40px}.time-content{padding:0;display:none}.summary-block{background:#f8f9fa;padding:16px 24px;cursor:pointer;border-bottom:1px solid #eef2f6;display:flex;justify-content:space-between;align-items:center}.summary-title{font-weight:700;font-size:17px;color:#1e3a5f}.summary-seats{background:#e0e7f0;padding:6px 16px;border-radius:40px;font-size:14px}.route-detail{border-bottom:1px solid #eef2f6;padding:20px 24px}.route-title{font-weight:700;font-size:18px;color:#1e3a5f;margin-bottom:15px;padding-bottom:8px;border-bottom:2px solid #1e3a5f;display:inline-block}.route-total{font-size:16px;color:#003cff;font-weight:600;margin-left:15px}.table-wrapper{overflow-x:auto;margin-top:10px;border-radius:16px}.passengers-table{width:100%;border-collapse:collapse;background:#fff;min-width:650px;font-size:14px}.passengers-table td,.passengers-table th{padding:14px;text-align:left;border-bottom:1px solid #eee;vertical-align:middle}.passengers-table th{background:#f8f9fa;font-weight:600;color:#555;font-size:13px}.phone-link{text-decoration:none;color:inherit;display:inline-flex;align-items:center;flex:1;cursor:pointer}.phone-link span{font-weight:600;font-variant-numeric:tabular-nums;color:#444;font-size:14px}.phone-container{display:inline-flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 14px;border-radius:14px;background:#fff;border:1.5px solid #edf0f5;min-width:175px}.btn-confirm-status{background:0 0;border:none;width:28px;height:28px;border-radius:50%;border:2px solid #d1d8e0;background:#fff;cursor:pointer}.btn-confirm-status::after{content:'✓';color:transparent;font-size:13px;font-weight:900}.phone-container.confirmed{background:#f1fcf4;border-color:#c3e6cb}.phone-container.confirmed .btn-confirm-status{background:linear-gradient(135deg,#00c853,#00a844);border-color:#00a844}.phone-container.confirmed .btn-confirm-status::after{color:#fff}.btn-presence{display:inline-flex;align-items:center;justify-content:center;padding:6px 12px;border-radius:12px;font-size:11px;font-weight:700;border:2px solid #e0e6ed;background:0 0;color:#8395a7;cursor:pointer;min-width:90px;min-height:34px;text-transform:uppercase}.btn-presence.checked{background:#3cba0a;color:#fff;border-color:#3cba0a;box-shadow:0 4px 12px #44bd3260}.btn-presence.saving,.btn-confirm-status.saving{opacity:.5;pointer-events:none}.payment-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;white-space:nowrap}.payment-cash{background:#d4edda;color:#04701d;border:1px solid #c3e6cb}.payment-cashless{background:#e8d9ff;color:#2b0367;border:1px solid #d1c4e9}.empty-state{text-align:center;padding:50px;background:#fff;border-radius:20px;color:#999;font-size:15px}.loading{text-align:center;padding:50px;color:#666}.info-note{background:#e8f4fd;border-radius:12px;padding:12px 18px;margin-top:20px;font-size:13px;color:#1e3a5f}.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#1e3a5f;color:#fff;padding:10px 20px;border-radius:40px;font-size:13px;z-index:1000;animation:fadeInOut 1.5s ease;white-space:nowrap}@keyframes fadeInOut{0%{opacity:0;transform:translateX(-50%) translateY(20px)}15%{opacity:1;transform:translateX(-50%) translateY(0)}85%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-20px)}}@media(max-width:700px){body{padding:12px}h1{font-size:22px}.route-detail{padding:14px 18px}.time-header{padding:12px 18px;font-size:17px;min-height:52px}.time-header .time-seats{font-size:13px;padding:4px 12px}.passengers-table{min-width:600px}.btn-presence{padding:4px 10px;font-size:10px;min-width:80px;min-height:30px}.btn-confirm-status{width:34px;height:34px}}</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=yes">
+    <meta name="theme-color" content="#1e3a5f">
+    <title>Владелец | Учёт пассажиров</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; background: #f0f2f5; color: #1a1a1a; padding: 20px; }
+        ._0xbc1 { max-width: 1200px; margin: 0 auto; }
+        h1 { font-size: 28px; margin-bottom: 8px; color: #1e3a5f; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        ._0xba1 { background: 0 0; border: none; font-size: 24px; cursor: pointer; color: #1e3a5f; padding: 5px 10px; border-radius: 40px; min-width: 44px; min-height: 44px; }
+        ._0xba1:active { background: #e0e7f0; transform: scale(.95); }
+        ._0xsub { color: #666; margin-bottom: 20px; border-left: 4px solid #1e3a5f; padding-left: 15px; font-size: 14px; }
+        ._0xdrs { background: #fff; border-radius: 20px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; box-shadow: 0 2px 8px #0000000d; }
+        ._0xdrs label { font-weight: 600; color: #1e3a5f; font-size: 15px; }
+        ._0xdrs select { padding: 10px 16px; border-radius: 40px; border: 1px solid #ddd; font-size: 15px; background: #fff; min-width: 180px; cursor: pointer; }
+        ._0xdsc { display: flex; gap: 14px; overflow-x: auto; padding: 10px 5px 25px; margin-bottom: 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        ._0xdch { background: #fff; border-radius: 18px; padding: 12px 18px; min-width: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 4px 12px #0000000f; cursor: pointer; flex-shrink: 0; border: 1px solid #00000008; }
+        ._0xdch.active { background: linear-gradient(135deg, #1e3a5f, #2c5387); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 20px #1e3a5f40; border: none; }
+        ._0xdch ._0xdnum { font-size: 22px; font-weight: 800; }
+        ._0xdch ._0xdmon { font-size: 11px; text-transform: uppercase; opacity: .7; }
+        ._0xdch ._0xdsts { font-size: 10px; background: #1e3a5f14; padding: 3px 8px; border-radius: 8px; font-weight: 600; margin-top: 4px; }
+        ._0xdch.active ._0xdsts { background: #778ea347; color: #fff; }
+        ._0xtg { background: #fff; border-radius: 20px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 8px #0000000d; }
+        ._0xth { background: #1e3a5f; color: #fff; padding: 16px 24px; font-weight: 700; font-size: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 60px; }
+        ._0xth ._0xtsts { font-size: 16px; background: #ffffff33; padding: 6px 16px; border-radius: 40px; }
+        ._0xtc { padding: 0; display: none; }
+        ._0xsb { background: #f8f9fa; padding: 16px 24px; cursor: pointer; border-bottom: 1px solid #eef2f6; display: flex; justify-content: space-between; align-items: center; }
+        ._0xsbt { font-weight: 700; font-size: 17px; color: #1e3a5f; }
+        ._0xsbs { background: #e0e7f0; padding: 6px 16px; border-radius: 40px; font-size: 14px; }
+        ._0xrd { border-bottom: 1px solid #eef2f6; padding: 20px 24px; }
+        ._0xrt { font-weight: 700; font-size: 18px; color: #1e3a5f; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #1e3a5f; display: inline-block; }
+        ._0xrtl { font-size: 16px; color: #003cff; font-weight: 600; margin-left: 15px; }
+        ._0xtw { overflow-x: auto; margin-top: 10px; border-radius: 16px; }
+        ._0xpt { width: 100%; border-collapse: collapse; background: #fff; min-width: 650px; font-size: 14px; }
+        ._0xpt td, ._0xpt th { padding: 14px; text-align: left; border-bottom: 1px solid #eee; vertical-align: middle; }
+        ._0xpt th { background: #f8f9fa; font-weight: 600; color: #555; font-size: 13px; }
+        ._0xphc { display: inline-flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 14px; border-radius: 14px; background: #fff; border: 1.5px solid #edf0f5; min-width: 175px; }
+        ._0xphl { text-decoration: none; color: inherit; display: inline-flex; align-items: center; flex: 1; cursor: pointer; }
+        ._0xphl span { font-weight: 600; font-variant-numeric: tabular-nums; color: #444; font-size: 14px; }
+        ._0xbcs { background: 0 0; border: none; width: 28px; height: 28px; border-radius: 50%; border: 2px solid #d1d8e0; background: #fff; cursor: pointer; }
+        ._0xbcs::after { content: '✓'; color: transparent; font-size: 13px; font-weight: 900; }
+        ._0xphc.confirmed { background: #f1fcf4; border-color: #c3e6cb; }
+        ._0xphc.confirmed ._0xbcs { background: linear-gradient(135deg, #00c853, #00a844); border-color: #00a844; }
+        ._0xphc.confirmed ._0xbcs::after { color: #fff; }
+        ._0xbpr { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; border: 2px solid #e0e6ed; background: 0 0; color: #8395a7; cursor: pointer; min-width: 90px; min-height: 34px; text-transform: uppercase; }
+        ._0xbpr.checked { background: #3cba0a; color: #fff; border-color: #3cba0a; box-shadow: 0 4px 12px #44bd3260; }
+        ._0xbpr.saving, ._0xbcs.saving { opacity: .5; pointer-events: none; }
+        ._0xpmb { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+        ._0xpmc { background: #d4edda; color: #04701d; border: 1px solid #c3e6cb; }
+        ._0xpmcl { background: #e8d9ff; color: #2b0367; border: 1px solid #d1c4e9; }
+        ._0xemp { text-align: center; padding: 50px; background: #fff; border-radius: 20px; color: #999; font-size: 15px; }
+        ._0xlod { text-align: center; padding: 50px; color: #666; }
+        ._0xinf { background: #e8f4fd; border-radius: 12px; padding: 12px 18px; margin-top: 20px; font-size: 13px; color: #1e3a5f; }
+        ._0xtst { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e3a5f; color: #fff; padding: 10px 20px; border-radius: 40px; font-size: 13px; z-index: 1000; animation: _0xfio 1.5s ease; white-space: nowrap; }
+        @keyframes _0xfio { 0% { opacity: 0; transform: translateX(-50%) translateY(20px); } 15% { opacity: 1; transform: translateX(-50%) translateY(0); } 85% { opacity: 1; transform: translateX(-50%) translateY(0); } 100% { opacity: 0; transform: translateX(-50%) translateY(-20px); } }
+        @media(max-width:700px) { body { padding: 12px; } h1 { font-size: 22px; } ._0xrd { padding: 14px 18px; } ._0xth { padding: 12px 18px; font-size: 17px; min-height: 52px; } ._0xth ._0xtsts { font-size: 13px; padding: 4px 12px; } ._0xpt { min-width: 600px; } ._0xbpr { padding: 4px 10px; font-size: 10px; min-width: 80px; min-height: 30px; } ._0xbcs { width: 34px; height: 34px; } }
+    </style>
 </head>
 <body>
-<div class=container>
-<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:10px"><h1><button class=back-btn id=backBtn style=display:none>←</button><span>👑 Список пассажиров</span></h1></div>
-<div class=driver-selector><label>👨‍✈️ Просмотр от:</label><select id=driverSelect><option value=all>👑 Владелец</option><option value="Алексей Б.">🚛 Алексей Б.</option><option value="Валентин К.">🚛 Валентин К.</option><option value="Владимир Л.">🚛 Владимир Л.</option><option value="Влад Н.">🚛 Влад Н.</option><option value="Андрей К.">🚛 Андрей К.</option></select></div>
-<div class=subtitle id=subtitle>Актуальные рейсы на ближайшие дни</div>
-<div id=mainContent><div class=loading>Загрузка данных...</div></div>
-<div class=info-note>Нажмите на дату → время → общая сводка. Изменения синхронизируются автоматически.</div>
-</div>
-<script>
-const PROXY_URL='https://site44.nikitoskozia.workers.dev/',APP_TOKEN='tWWpNIKI66HQ4-B',TIME_ORDER=['03:30','10:00','11:30','14:00','15:30','16:30','18:00','21:30'];
-let allData=[],currentView='dates',selectedDate=null,currentDriver='all';
+    <div class="_0xbc1">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+            <h1><button class="_0xba1" id="_0xbb" style="display:none">←</button><span>👑 Список пассажиров</span></h1>
+        </div>
+        <div class="_0xdrs">
+            <label>👨‍✈️ Просмотр от:</label>
+            <select id="_0xds">
+                <option value="all">👑 Владелец</option>
+                <option value="Алексей Б.">🚛 Алексей Б.</option>
+                <option value="Валентин К.">🚛 Валентин К.</option>
+                <option value="Владимир Л.">🚛 Владимир Л.</option>
+                <option value="Влад Н.">🚛 Влад Н.</option>
+                <option value="Андрей К.">🚛 Андрей К.</option>
+            </select>
+        </div>
+        <div class="_0xsub" id="_0xst">Актуальные рейсы на ближайшие дни</div>
+        <div id="_0xmc"><div class="_0xlod">Загрузка данных...</div></div>
+        <div class="_0xinf">Нажмите на дату → время → общая сводка. Изменения синхронизируются автоматически.</div>
+    </div>
+    <script>
+    
+        const _0xcr = (function() {
+            const list = [
+                'aHR0cHM6Ly9zaXRlNDQubmlraXRvc2tvemlhLndvcmtlcnMuZGV2Lw==', // URL
+                'dFdXcE5JS0k2NkhRNC1C', // TOKEN
+                'Y2FsbFByb3h5', 'Z2V0RGF0YQ==', 'c2F2ZVN0YXR1cw==', 'Y29uZmlybWVk', 'cHJlc2VudA=='
+            ];
+            return function(idx) { return atob(list[idx]); };
+        })();
 
-// ОЧИЩЕННАЯ ФУНКЦИЯ: Убраны конфликтующие credentials для Safari и выставлен безопасный text/plain
-async function callProxy(a,d={}){
-    let r=await fetch(PROXY_URL,{
-        method:'POST',
-        headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body:JSON.stringify({appToken:APP_TOKEN,action:a,...d})
-    });
-    if(!r.ok)throw new Error(`HTTP ${r.status}`);
-    return r.json()
-}
+        const _0xlu = _0xcr(0);
+        const _0xat = _0xcr(1);
+        const _0xto = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
 
-function showToast(m,e){document.querySelector('.toast')?.remove();let t=document.createElement('div');t.className='toast',t.textContent=m,t.style.background=e?'#c62828':'#1e3a5f',document.body.appendChild(t),setTimeout(()=>t.remove(),1500)}
-function formatPayment(p,n){let ns=n?` (${n})`:'';if(!p||p==='')return`<span class="payment-badge payment-cashless">Безнал${ns}</span>`;let lp=p.toLowerCase();if(lp.includes('нал')||lp.includes('налич')||/^\d/.test(p)){let mm=p.match(/\d+/);return mm?`<span class="payment-badge payment-cash">Нал ${mm[0]} ₽</span>`:`<span class="payment-badge payment-cash">Наличные</span>`}return lp.includes('безнал')||lp==='без'?`<span class="payment-badge payment-cashless">Безнал${ns}</span>`:`<span class="payment-badge payment-cashless">${p}${ns}</span>`}
-function normDate(v){if(!v)return null;if(typeof v==='string'&&/^\d{2}\.\d{2}\.\d{4}$/.test(v))return v;let d=null;if(v instanceof Date&&!isNaN(v))d=v;if(typeof v==='string'){let p=new Date(v);if(!isNaN(p))d=p;let parts=v.split('.');if(parts.length===3){let t=new Date(parts[2],parts[1]-1,parts[0]);if(!isNaN(t))d=t}}if(d&&!isNaN(d)){let day=d.getDate(),month=d.getMonth()+1,year=d.getFullYear();return(day<10?'0'+day:day)+'.'+(month<10?'0'+month:month)+'.'+year}return String(v)}
-function parseDate(s){if(!s)return new Date(0);let p=String(s).split('.');return p.length===3?new Date(p[2],p[1]-1,p[0]):new Date(s)}function isUpcoming(d){let t=new Date;t.setHours(0,0,0,0);let dt=parseDate(d);return dt.setHours(0,0,0,0),dt>=t}
-function getUniqDates(){let u=[...new Set(allData.map(i=>i.date))],f=u.filter(isUpcoming);return f.sort((a,b)=>parseDate(a)-parseDate(b)).slice(0,7)}function getSeats(d){return allData.filter(i=>i.date===d).reduce((s,i)=>s+i.seats,0)}function getPassengers(d,t,r){return allData.filter(i=>{if(!i.time)return!1;let ts=String(i.time).trim(),m=ts.match(/(\d{2}):(\d{2})/);return m&&(ts=m[1]+':'+m[2]),i.date===d&&ts.substring(0,5)===t.substring(0,5)&&i.route===r})}
-function getAllSlots(d){let f=allData.filter(i=>i.date===d),r=[];for(let t of TIME_ORDER){let a=f.filter(i=>{if(!i.time)return!1;let ts=String(i.time).trim(),m=ts.match(/(\d{2}):(\d{2})/);return m&&(ts=m[1]+':'+m[2]),ts.substring(0,5)===t.substring(0,5)});if(a.length){let rm=new Map;a.forEach(i=>{let cs=rm.get(i.route)||0;rm.set(i.route,cs+i.seats)}),r.push({time:t,routes:Object.fromEntries(rm),totalSeats:[...rm.values()].reduce((a,b)=>a+b,0),empty:!1})}else r.push({time:t,routes:{},totalSeats:0,empty:!0})}return r}
-function cleanPhone(p){return p?String(p).replace(/[^\d+]/g,''):''}
+        let _0xda = [], _0xcv = 'dates', _0xsd = null, _0xcd = 'all';
 
-async function loadData(){try{let dn=currentDriver==='all'?'Владелец':currentDriver,data=await callProxy('getData',{driver:dn});if(!data||data.error)throw new Error(data?.error||'Ошибка');allData=data.filter(i=>i&&i.date&&i.route&&i.time).map(i=>({...i,date:normDate(i.date)})).filter(i=>i.date);allData.length===0?document.getElementById('mainContent').innerHTML='<div class="empty-state">Нет данных.</div>':renderCurrent()}catch(e){document.getElementById('mainContent').innerHTML=`<div class="empty-state">Ошибка: ${e.message}</div>`}}
-async function saveStatus(id,checked,el,type){if(el.classList.contains('saving'))return;el.classList.add('saving');let old=type==='confirmed'?el.closest('.phone-container')?.classList.contains('confirmed'):el.classList.contains('checked');if(type==='confirmed'){let c=el.closest('.phone-container');c&&(checked?c.classList.add('confirmed'):c.classList.remove('confirmed'))}else checked?(el.classList.add('checked'),el.innerHTML='✅ На месте'):(el.classList.remove('checked'),el.innerHTML='⏳ Ожидание');let item=allData.find(d=>d.rowId===id);item&&(type==='confirmed'?item.confirmed=checked:item.checked=checked);try{await callProxy('saveStatus',{rowId:id,checked:checked,type});showToast(type==='confirmed'?(checked?'✅ Бронь подтверждена':'❌ Бронь отменена'):(checked?'✅ Пассажир на месте':'⏳ Ожидание пассажира'))}catch(e){if(type==='confirmed'){let c=el.closest('.phone-container');c&&(old?c.classList.add('confirmed'):c.classList.remove('confirmed')),item&&(item.confirmed=old)}else old?(el.classList.add('checked'),el.innerHTML='✅ На месте'):(el.classList.remove('checked'),el.innerHTML='⏳ Ожидание'),item&&(item.checked=old);showToast('❌ Ошибка',!0)}finally{el.classList.remove('saving')}}
+        async function _0xfp(act, bodyData = {}) {
+            let res = await fetch(_0xlu, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ appToken: _0xat, action: act, ...bodyData })
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+        }
 
-function renderDates(){let c=document.getElementById('mainContent'),d=getUniqDates();if(!d.length){c.innerHTML='<div class="empty-state">Нет рейсов</div>';return}let m=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];c.innerHTML=`<div class="dates-scroll">${d.map(dt=>{let p=dt.split('.'),day=p[0],mi=parseInt(p[1])-1,seats=getSeats(dt);return`<div class="date-chip" data-date="${dt}"><span class="date-month">${m[mi]}</span><span class="date-day-num">${day}</span><span class="date-seats">${seats} мест</span></div>`}).join('')}</div><div id="timesContainer"></div>`,document.querySelectorAll('.date-chip').forEach(chip=>{chip.onclick=()=>{selectedDate=chip.dataset.date,document.querySelectorAll('.date-chip').forEach(c=>c.classList.remove('active')),chip.classList.add('active'),currentView='times',renderCurrent()}}),selectedDate&&d.includes(selectedDate)?document.querySelector(`.date-chip[data-date="${selectedDate}"]`)?.classList.add('active'):d.length&&document.querySelector('.date-chip').click()}
-function renderTimes(){let c=document.getElementById('timesContainer');if(!c||!selectedDate)return;let slots=getAllSlots(selectedDate);if(!slots.length){c.innerHTML='<div class="empty-state">Нет рейсов</div>';return}c.innerHTML=slots.map(slot=>slot.empty?`<div class="time-group"><div class="time-header" data-time="${slot.time}"><span>${slot.time}</span><span class="time-seats">0 мест</span></div><div class="time-content" id="tc-${slot.time.replace(':','')}" style="display:none"><div class="empty-state" style="padding:25px">Нет пассажиров</div></div></div>`:`<div class="time-group"><div class="time-header" data-time="${slot.time}"><span>${slot.time}</span><span class="time-seats">${slot.totalSeats} мест</span></div><div class="time-content" id="tc-${slot.time.replace(':','')}" style="display:none"><div class="summary-block" data-time="${slot.time}"><span class="summary-title">Общая сводка</span><span class="summary-seats">${slot.totalSeats} мест</span></div><div class="routes-details" id="rd-${slot.time.replace(':','')}" style="display:none">${Object.keys(slot.routes).map(route=>{let ps=getPassengers(selectedDate,slot.time,route);return`<div class="route-detail"><div><span class="route-title">${route.replace('-',' → ')}</span><span class="route-total">${ps.reduce((s,p)=>s+p.seats,0)} чел</span></div><div class="table-wrapper"><table class="passengers-table"><thead><tr><th>№</th><th>ФИО</th><th>Телефон / Бронь</th><th>Мест</th><th>Оплата</th><th>Явка</th></tr></thead><tbody>${ps.map((p,idx)=>{let cp=cleanPhone(p.phone),pd=p.phone||'—',phl=cp?`<a href="tel:${cp}" class="phone-link" onclick="event.stopPropagation()"><span>${pd}</span></a>`:`<span class="phone-link"><span>${pd}</span></span>`;return`<tr><td>${idx+1}</td><td><strong>${p.name}</strong></td><td><div class="phone-container ${p.confirmed?'confirmed':''}" data-rowid="${p.rowId}">${phl}<button class="btn-confirm-status" data-rowid="${p.rowId}"></button></div></td><td>${p.seats}</td><td>${formatPayment(p.payment,p.note)}</td><td><button class="btn-presence ${p.checked?'checked':''}" data-rowid="${p.rowId}">${p.checked?'✅ На месте':'⏳ Ожидание'}</button></td></tr>`}).join('')}</tbody></table></div></div>`}).join('')}</div></div></div>`).join('');document.querySelectorAll('.time-header').forEach(h=>{h.onclick=e=>{e.stopPropagation();let con=document.getElementById(`tc-${h.dataset.time.replace(':','')}`);con&&(con.style.display=con.style.display==='none'?'block':'none')}});document.querySelectorAll('.summary-block').forEach(s=>{s.onclick=e=>{e.stopPropagation();let d=document.getElementById(`rd-${s.dataset.time.replace(':','')}`);d&&(d.style.display=d.style.display==='none'?'block':'none',s.style.background=d.style.display==='none'?'#f8f9fa':'#eef2f6')}});document.querySelectorAll('.btn-confirm-status').forEach(btn=>{btn.onclick=e=>{e.stopPropagation();let c=btn.closest('.phone-container');c&&saveStatus(Number(c.dataset.rowid),!c.classList.contains('confirmed'),btn,'confirmed')}});document.querySelectorAll('.btn-presence').forEach(btn=>{btn.onclick=e=>{e.stopPropagation();saveStatus(Number(btn.dataset.rowid),!btn.classList.contains('checked'),btn,'present')}})}
-function renderCurrent(){currentView==='dates'?renderDates():renderTimes();let bb=document.getElementById('backBtn');bb&&(bb.style.display=currentView==='dates'?'none':'inline-block');document.getElementById('subtitle').innerHTML=currentDriver==='all'?'Актуальные рейсы на ближайшие дни':`Рейсы для ${currentDriver}`}
-document.getElementById('driverSelect').onchange=e=>{currentDriver=e.target.value,selectedDate=null,currentView='dates',loadData()};
-document.getElementById('backBtn').onclick=()=>{currentView='dates',selectedDate=null,renderCurrent()};
-loadData();
-</script>
+        function _0xstst(msg, err) {
+            document.querySelector('._0xtst')?.remove();
+            let el = document.createElement('div');
+            el.className = '_0xtst';
+            el.textContent = msg;
+            el.style.background = err ? '#c62828' : '#1e3a5f';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1500);
+        }
+
+        function _0xfpm(p, n) {
+            let ns = n ? ` (${n})` : '';
+            if (!p || p === '') return `<span class="_0xpmb _0xpmcl">Безнал${ns}</span>`;
+            let lp = p.toLowerCase();
+            if (lp.includes('нал') || lp.includes('налич') || /^\d/.test(p)) {
+                let m = p.match(/\d+/);
+                return m ? `<span class="_0xpmb _0xpmc">Нал ${m[0]} ₽</span>` : `<span class="_0xpmb _0xpmc">Наличные</span>`;
+            }
+            return lp.includes('безнал') || lp === 'без' ? `<span class="_0xpmb _0xpmcl">Безнал${ns}</span>` : `<span class="_0xpmb _0xpmcl">${p}${ns}</span>`;
+        }
+
+        function _0xnd(v) {
+            if (!v) return null;
+            if (typeof v === 'string' && /^\d{2}\.\d{2}\.\d{4}$/.test(v)) return v;
+            let d = null;
+            if (v instanceof Date && !isNaN(v)) d = v;
+            if (typeof v === 'string') {
+                let p = new Date(v);
+                if (!isNaN(p)) d = p;
+                let pts = v.split('.');
+                if (pts.length === 3) {
+                    let t = new Date(pts[2], pts[1] - 1, pts[0]);
+                    if (!isNaN(t)) d = t;
+                }
+            }
+            if (d && !isNaN(d)) {
+                let dy = d.getDate(), mn = d.getMonth() + 1;
+                return (dy < 10 ? '0' + dy : dy) + '.' + (mn < 10 ? '0' + mn : mn) + '.' + d.getFullYear();
+            }
+            return String(v);
+        }
+
+        function _0xpd(s) {
+            if (!s) return new Date(0);
+            let p = String(s).split('.');
+            return p.length === 3 ? new Date(p[2], p[1] - 1, p[0]) : new Date(s);
+        }
+
+        function _0xiu(dStr) {
+            let t = new Date(); t.setHours(0,0,0,0);
+            let tg = _0xpd(dStr); tg.setHours(0,0,0,0);
+            return tg >= t;
+        }
+
+        function _0xgud() {
+            let u = [...new Set(_0xda.map(i => i.date))].filter(_0xiu);
+            return u.sort((a, b) => _0xpd(a) - _0xpd(b)).slice(0, 7);
+        }
+
+        function _0xgsc(d) { return _0xda.filter(i => i.date === d).reduce((s, i) => s + i.seats, 0); }
+
+        function _0xgps(d, t, r) {
+            return _0xda.filter(i => {
+                if (!i.time) return false;
+                let ts = String(i.time).trim(), m = ts.match(/(\d{2}):(\d{2})/);
+                if (m) ts = m[1] + ':' + m[2];
+                return i.date === d && ts.substring(0, 5) === t.substring(0, 5) && i.route === r;
+            });
+        }
+
+        function _0xgas(d) {
+            let f = _0xda.filter(i => i.date === d), sl = [];
+            for (let t of _0xto) {
+                let at = f.filter(i => {
+                    if (!i.time) return false;
+                    let ts = String(i.time).trim(), m = ts.match(/(\d{2}):(\d{2})/);
+                    if (m) ts = m[1] + ':' + m[2];
+                    return ts.substring(0, 5) === t.substring(0, 5);
+                });
+                if (at.length) {
+                    let rm = new Map();
+                    at.forEach(i => { let c = rm.get(i.route) || 0; rm.set(i.route, c + i.seats); });
+                    sl.push({ time: t, routes: Object.fromEntries(rm), totalSeats: [...rm.values()].reduce((a, b) => a + b, 0), empty: false });
+                } else {
+                    sl.push({ time: t, routes: {}, totalSeats: 0, empty: true });
+                }
+            }
+            return sl;
+        }
+
+        function _0xcp(p) { return p ? String(p).replace(/[^\d+]/g, '') : ''; }
+
+        async function _0xld() {
+            try {
+                let nm = (_0xcd === 'all') ? 'Владелец' : _0xcd;
+                let dt = await _0xfp(_0xcr(3), { driver: nm });
+                if (!dt || dt.error) throw new Error(dt?.error || 'Ошибка');
+                _0xda = dt.filter(i => i && i.date && i.route && i.time).map(i => ({ ...i, date: _0xnd(i.date) })).filter(i => i.date);
+                if (_0xda.length === 0) {
+                    document.getElementById('_0xmc').innerHTML = '<div class="_0xemp">Нет данных.</div>';
+                } else {
+                    _0xrc();
+                }
+            } catch (e) {
+                document.getElementById('_0xmc').innerHTML = `<div class="_0xemp">Ошибка: ${e.message}</div>`;
+            }
+        }
+
+        async function _0xss(id, chk, el, tp) {
+            if (el.classList.contains('saving')) return;
+            el.classList.add('saving');
+            let isC = (tp === _0xcr(5)), cnt = el.closest('._0xphc'), itm = _0xda.find(d => d.rowId === id);
+            if (isC) {
+                if (cnt) chk ? cnt.classList.add('confirmed') : cnt.classList.remove('confirmed');
+            } else {
+                if (chk) { el.classList.add('checked'); el.innerHTML = '✅ На месте'; }
+                else { el.classList.remove('checked'); el.innerHTML = '⏳ Ожидание'; }
+            }
+            try {
+                await _0xfp(_0xcr(4), { rowId: id, checked: chk, type: tp });
+                _0xstst(isC ? (chk ? '✅ Бронь подтверждена' : '❌ Бронь отменена') : (chk ? '✅ Пассажир на месте' : '⏳ Ожидание пассажира'));
+                if (itm) isC ? itm.confirmed = chk : itm.checked = chk;
+            } catch (err) {
+                _0xstst('❌ Ошибка синхронизации', true);
+            } finally {
+                el.classList.remove('saving');
+            }
+        }
+
+        function _0xrdt() {
+            let cnt = document.getElementById('_0xmc'), dts = _0xgud();
+            if (!dts.length) { cnt.innerHTML = '<div class="_0xemp">Нет рейсов</div>'; return; }
+            let mns = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+            cnt.innerHTML = `<div class="_0xdsc">${dts.map(dt => {
+                let p = dt.split('.'), dy = p[0], mi = parseInt(p[1]) - 1;
+                return `<div class="_0xdch ${dt === _0xsd ? 'active' : ''}" data-date="${dt}"><span class="_0xdmon">${mns[mi]}</span><span class="_0xdnum">${dy}</span><span class="_0xdsts">${_0xgsc(dt)} мест</span></div>`;
+            }).join('')}</div><div id="_0xtcnt"></div>`;
+            document.querySelectorAll('._0xdch').forEach(ch => {
+                ch.onclick = () => {
+                    _0xsd = ch.dataset.date;
+                    document.querySelectorAll('._0xdch').forEach(c => c.classList.remove('active'));
+                    ch.classList.add('active');
+                    _0xcv = 'times'; _0xrc();
+                };
+            });
+            if (_0xsd && dts.includes(_0xsd)) _0xrtm(); else if (dts.length) document.querySelector('._0xdch').click();
+        }
+
+        function _0xrtm() {
+            let cnt = document.getElementById('_0xtcnt'); if (!cnt || !_0xsd) return;
+            let sls = _0xgas(_0xsd);
+            cnt.innerHTML = sls.map(sl => {
+                let tid = sl.time.replace(':', '');
+                if (sl.empty) {
+                    return `<div class="_0xtg"><div class="_0xth" data-time="${sl.time}"><span>${sl.time}</span><span class="_0xtsts">0 мест</span></div><div class="_0xtc" id="tc-${tid}"><div class="_0xemp" style="padding:25px">Нет пассажиров</div></div></div>`;
+                }
+                return `<div class="_0xtg"><div class="_0xth" data-time="${sl.time}"><span>${sl.time}</span><span class="_0xtsts">${sl.totalSeats} мест</span></div><div class="_0xtc" id="tc-${tid}"><div class="_0xsb" data-time="${sl.time}"><span class="_0xsbt">Общая сводка</span><span class="_0xsbs">${sl.totalSeats} мест</span></div><div class="_0xrdts" id="rd-${tid}" style="display:none">${Object.keys(sl.routes).map(rt => {
+                    let ps = _0xgps(_0xsd, sl.time, rt);
+                    return `<div class="_0xrd"><div><span class="_0xrt">${rt.replace('-', ' → ')}</span><span class="_0xrtl">${ps.reduce((s, p) => s + p.seats, 0)} чел</span></div><div class="_0xtw"><table class="_0xpt"><thead><tr><th>№</th><th>ФИО</th><th>Телефон / Бронь</th><th>Мест</th><th>Оплата</th><th>Явка</th></tr></thead><tbody>${ps.map((p, idx) => {
+                        let cph = _0xcp(p.phone), dph = p.phone || '—', hph = cph ? `<a href="tel:${cph}" class="_0xphl" onclick="event.stopPropagation()"><span>${dph}</span></a>` : `<span class="_0xphl"><span>${dph}</span></span>`;
+                        return `<tr><td>${idx + 1}</td><td><strong>${p.name}</strong></td><td><div class="_0xphc ${p.confirmed ? 'confirmed' : ''}" data-rowid="${p.rowId}">${hph}<button class="_0xbcs" data-rowid="${p.rowId}"></button></div></td><td>${p.seats}</td><td>${_0xfpm(p.payment, p.note)}</td><td><button class="_0xbpr ${p.checked ? 'checked' : ''}" data-rowid="${p.rowId}">${p.checked ? '✅ На месте' : '⏳ Ожидание'}</button></td></tr>`;
+                    }).join('')}</tbody></table></div></div>`;
+                }).join('')}</div></div></div>`;
+            }).join('');
+            document.querySelectorAll('._0xth').forEach(h => {
+                h.onclick = (e) => {
+                    e.stopPropagation(); let c = document.getElementById(`tc-${h.dataset.time.replace(':', '')}`);
+                    if (c) c.style.display = (c.style.display === 'none' || !c.style.display) ? 'block' : 'none';
+                };
+            });
+            document.querySelectorAll('._0xsb').forEach(s => {
+                s.onclick = (e) => {
+                    e.stopPropagation(); let d = document.getElementById(`rd-${s.dataset.time.replace(':', '')}`);
+                    if (d) { let hd = d.style.display === 'none'; d.style.display = hd ? 'block' : 'none'; s.style.background = hd ? '#eef2f6' : '#f8f9fa'; }
+                };
+            });
+            document.querySelectorAll('._0xbcs').forEach(b => {
+                b.onclick = (e) => {
+                    e.stopPropagation(); let c = b.closest('._0xphc');
+                    if (c) _0xss(Number(c.dataset.rowid), !c.classList.contains('confirmed'), b, _0xcr(5));
+                };
+            });
+            document.querySelectorAll('._0xbpr').forEach(b => {
+                b.onclick = (e) => { e.stopPropagation(); _0xss(Number(b.dataset.rowid), !b.classList.contains('checked'), b, _0xcr(6)); };
+            });
+        }
+
+        function _0xrc() {
+            if (_0xcv === 'dates') _0xrdt(); else _0xrtm();
+            let bb = document.getElementById('_0xbb'); if (bb) bb.style.display = (_0xcv === 'dates') ? 'none' : 'inline-block';
+            document.getElementById('_0xst').innerHTML = (_0xcd === 'all') ? 'Актуальные рейсы на ближайшие дни' : `Рейсы для ${0xcd}`;
+        }
+
+        document.getElementById('_0xds').onchange = (e) => { _0xcd = e.target.value; _0xsd = null; _0xcv = 'dates'; _0xld(); };
+        document.getElementById('_0xbb').onclick = () => { _0xcv = 'dates'; _0xsd = null; _0xrc(); };
+        
+        _0xld();
+    </script>
 </body>
 </html>
