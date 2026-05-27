@@ -6,6 +6,147 @@
     <meta name="theme-color" content="#1e3a5f">
     <title>Владелец | Учёт пассажиров</title>
     <style>
+        /* --- НОВЫЙ СТИЛЬНЫЙ БЛЮР --- */
+        #auth-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.4s ease, visibility 0.4s;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.97);
+            padding: 36px 32px;
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            width: 90%;
+            max-width: 380px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            animation: fadeInScale 0.3s ease-out;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .auth-card h2 {
+            color: #1e3a5f;
+            margin-bottom: 8px;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .auth-subtitle {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 28px;
+            font-weight: 400;
+        }
+
+        .auth-card input {
+            width: 100%;
+            padding: 16px 18px;
+            border-radius: 16px;
+            border: 2px solid #e9ecef;
+            font-size: 16px;
+            margin-bottom: 20px;
+            outline: none;
+            text-align: left;
+            background: #f8f9fa;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .auth-card input:focus {
+            border-color: #1e3a5f;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+        }
+
+        .auth-card input::placeholder {
+            color: #adb5bd;
+            font-weight: 400;
+        }
+
+        .auth-card button {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2c5387 100%);
+            color: #fff;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 4px;
+            box-shadow: 0 4px 14px rgba(30, 58, 95, 0.35);
+        }
+
+        .auth-card button:active {
+            transform: scale(0.97);
+            background: linear-gradient(135deg, #152e4a 0%, #1e3a5f 100%);
+        }
+
+        .auth-error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 16px;
+            display: none;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .lock-icon {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2c5387 100%);
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 8px 20px rgba(30, 58, 95, 0.3);
+        }
+
+        .lock-icon svg {
+            width: 28px;
+            height: 28px;
+            stroke: white;
+            stroke-width: 1.8;
+            fill: none;
+        }
+
+        body.authenticated #auth-overlay {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        #main-app {
+            filter: none;
+            opacity: 1;
+        }
+
+        /* --- ОСТАЛЬНЫЕ СТИЛИ (НЕ МЕНЯЛИСЬ) --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; background: #f0f2f5; color: #1a1a1a; padding: 20px; }
         ._0xbc1 { max-width: 1200px; margin: 0 auto; }
@@ -60,7 +201,24 @@
     </style>
 </head>
 <body>
-    <div class="_0xbc1">
+
+    <div id="auth-overlay">
+        <div class="auth-card">
+            <div class="lock-icon">
+                <svg viewBox="0 0 24 24" stroke="currentColor">
+                    <path d="M12 2C9.24 2 7 4.24 7 7v3H6c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8c0-1.1-.9-2-2-2h-1V7c0-2.76-2.24-5-5-5z" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 14v3" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <h2>Добро пожаловать</h2>
+            <div class="auth-subtitle">Введите пароль для доступа</div>
+            <input type="password" id="auth-pass" placeholder="Пароль" autofocus>
+            <button id="auth-submit">Войти в систему</button>
+            <div class="auth-error" id="auth-err">Неверный пароль</div>
+        </div>
+    </div>
+
+    <div class="_0xbc1" id="main-app">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:10px">
             <h1><button class="_0xba1" id="_0xbb" style="display:none">←</button><span>👑 Список пассажиров</span></h1>
         </div>
@@ -76,50 +234,63 @@
             </select>
         </div>
         <div class="_0xsub" id="_0xst">Актуальные рейсы на ближайшие дни</div>
-        <div id="_0xmc"><div class="_0xlod">Ожидание авторизации...</div></div>
+        <div id="_0xmc"><div class="_0xlod">Загрузка данных</div></div>
         <div class="_0xinf">Нажмите на дату → время → общая сводка. Изменения синхронизируются автоматически.</div>
     </div>
-    <script>
-        
-        const WORKER_URL = "https://site44.nikitoskozia.workers.dev/"; 
 
+    <script>
+        const WORKER_URL = "https://site44.nikitoskozia.workers.dev/"; 
         let _0xlu = ""; 
         let _0xat = "";
-        
         const _0xto = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
         let _0xda = [], _0xcv = 'dates', _0xsd = null, _0xcd = 'all';
 
-        // Исправленная функция авторизации: делает POST прямо на Cloudflare Воркер
         async function _0xauth() {
-            const p = prompt("Введите пароль доступа:");
+            const passField = document.getElementById('auth-pass');
+            const submitBtn = document.getElementById('auth-submit');
+            const errLabel = document.getElementById('auth-err');
+            
+            const p = passField.value;
             if (!p) return;
+
+            submitBtn.innerText = "Проверка...";
+            submitBtn.disabled = true;
+            errLabel.style.display = 'none';
+
             try {
-                document.getElementById('_0xmc').innerHTML = '<div class="_0xlod">Проверка пароля...</div>';
-                
                 const res = await fetch(WORKER_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: "get_config", password: p })
                 });
                 
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
-                
                 if (data.success) {
                     _0xlu = data.url;
                     _0xat = data.token;
-                    document.getElementById('_0xmc').innerHTML = '<div class="_0xlod">Загрузка данных...</div>';
-                    _0xld(); 
+                    
+                    document.body.classList.add('authenticated');
+                    
+                    setTimeout(() => {
+                        _0xld(); 
+                    }, 400);
+
                 } else {
-                    alert("Неверный пароль");
-                    _0xauth();
+                    errLabel.style.display = 'block';
+                    submitBtn.innerText = "Войти в систему";
+                    submitBtn.disabled = false;
+                    passField.value = '';
+                    passField.focus();
                 }
             } catch (e) {
-                console.error(e);
-                alert("Ошибка связи с сервером Cloudflare. Проверьте WORKER_URL и настройки CORS.");
-                document.getElementById('_0xmc').innerHTML = '<div class="_0xemp">Ошибка авторизации. Обновите страницу.</div>';
+                alert("Ошибка связи с сервером");
+                submitBtn.innerText = "Войти в систему";
+                submitBtn.disabled = false;
             }
         }
+
+        document.getElementById('auth-submit').onclick = _0xauth;
+        document.getElementById('auth-pass').onkeypress = (e) => { if(e.key === 'Enter') _0xauth(); };
 
         async function _0xfp(act, bodyData = {}) {
             let res = await fetch(_0xlu, {
@@ -326,8 +497,6 @@
 
         document.getElementById('_0xds').onchange = (e) => { _0xcd = e.target.value; _0xsd = null; _0xcv = 'dates'; _0xld(); };
         document.getElementById('_0xbb').onclick = () => { _0xcv = 'dates'; _0xsd = null; _0xrc(); };
-        
-        _0xauth();
     </script>
 </body>
 </html>
