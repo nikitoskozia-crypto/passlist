@@ -194,12 +194,11 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* ТАБЛИЦА - ТОЧНО КАК У ВЛАДЕЛЬЦА */
         .passengers-table {
             width: 100%;
             border-collapse: collapse;
             background: white;
-            min-width: 650px;
+            min-width: 750px;
             font-size: 14px;
         }
 
@@ -218,7 +217,6 @@
             font-size: 13px;
         }
 
-        /* ОПЛАТА - ТОЧНО КАК У ВЛАДЕЛЬЦА (с примечанием для безнала) */
         .payment-badge {
             display: inline-block;
             padding: 4px 12px;
@@ -240,7 +238,94 @@
             border: 1px solid #d1c4e9;
         }
 
-        /* КНОПКА ЯВКИ - ТОЧНО КАК У ВЛАДЕЛЬЦА */
+        /* --- СТИЛИ ДЛЯ КНОПКИ БРОНИРОВАНИЯ (ТОЧНО КАК У ВЛАДЕЛЬЦА) --- */
+        .phone-link {
+            text-decoration: none;
+            color: inherit;
+            display: inline-flex;
+            align-items: center;
+            flex: 1;
+            cursor: pointer;
+            transition: opacity 0.1s ease;
+        }
+        .phone-link:active {
+            opacity: 0.6;
+            transform: scale(0.98);
+        }
+        .phone-link span {
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            color: #444;
+            font-size: 14px;
+        }
+        
+        .phone-container {
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            gap: 12px;
+            padding: 8px 14px; 
+            border-radius: 14px; 
+            background: #ffffff; 
+            border: 1.5px solid #edf0f5;
+            min-width: 175px; 
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1); 
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .phone-container:active {
+            transform: scale(0.97);
+            background: #f5f5f5;
+        }
+        
+        .btn-confirm-status {
+            background: none; 
+            border: none; 
+            padding: 0; 
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 2px solid #d1d8e0;
+            transition: all 0.1s ease;
+            background: white;
+            flex-shrink: 0;
+        }
+        .btn-confirm-status:active { 
+            transform: scale(0.85);
+            background: #e0e7f0;
+        }
+        .btn-confirm-status::after { 
+            content: '✓'; 
+            color: transparent; 
+            font-size: 13px; 
+            font-weight: 900; 
+            transition: all 0.1s ease; 
+        }
+        
+        .phone-container.confirmed { 
+            background: #f1fcf4; 
+            border-color: #c3e6cb; 
+            box-shadow: 0 4px 10px rgba(46, 125, 50, 0.1);
+        }
+        .phone-container.confirmed .phone-link span { color: #1b5e20; }
+        .phone-container.confirmed .btn-confirm-status { 
+            background: linear-gradient(135deg, #00c853 0%, #00a844 100%); 
+            border-color: #00a844; 
+            box-shadow: 0 2px 5px rgba(39, 174, 96, 0.3);
+        }
+        .phone-container.confirmed .btn-confirm-status::after { color: white; }
+        
+        .btn-confirm-status.saving {
+            opacity: 0.5;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+        /* ------------------------------------ */
+
         .btn-presence {
             display: inline-flex;
             align-items: center;
@@ -274,9 +359,10 @@
             box-shadow: 0 4px 12px rgba(68, 189, 50, 0.35);
         }
 
-        .btn-presence:disabled {
-            opacity: 0.6;
-            cursor: wait;
+        .btn-presence.saving {
+            opacity: 0.5;
+            transform: scale(0.95);
+            pointer-events: none;
         }
 
         .empty-state {
@@ -309,10 +395,32 @@
             width: 110px;
         }
 
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e3a5f;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 13px;
+            z-index: 1000;
+            animation: fadeInOut 1.5s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        }
+
         @media (max-width: 700px) {
             .passengers-table {
                 font-size: 13px;
-                min-width: 600px;
+                min-width: 700px;
             }
             .passengers-table th,
             .passengers-table td {
@@ -327,6 +435,14 @@
             .payment-badge {
                 padding: 3px 10px;
                 font-size: 11px;
+            }
+            .phone-container {
+                min-width: 160px;
+                padding: 6px 10px;
+            }
+            .btn-confirm-status {
+                width: 32px;
+                height: 32px;
             }
         }
     </style>
@@ -357,36 +473,111 @@
         let currentView = 'dates';
         let selectedDate = null;
 
-        // Хранилище для отметок явки (локальное)
-        const STORAGE_CHECKS_KEY = 'arrivalChecks_vladimir';
         let arrivalChecks = {};
 
-        function loadChecksFromStorage() {
-            const saved = localStorage.getItem(STORAGE_CHECKS_KEY);
-            if (saved) arrivalChecks = JSON.parse(saved);
+        function showToast(message, isError = false) {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) existingToast.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            toast.style.background = isError ? '#c62828' : '#1e3a5f';
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 1500);
         }
 
-        function saveCheckToStorage(key, isChecked) {
-            if (isChecked) arrivalChecks[key] = true;
-            else delete arrivalChecks[key];
-            localStorage.setItem(STORAGE_CHECKS_KEY, JSON.stringify(arrivalChecks));
+        function formatPayment(payment, note) {
+            const noteStr = note ? ` (${note})` : '';
+            if (!payment || payment === '') return `<span class="payment-badge payment-cashless">Безнал${noteStr}</span>`;
+            const lowerPayment = payment.toLowerCase();
+            if (lowerPayment.includes('нал') || lowerPayment.includes('налич') || /^\d/.test(payment)) {
+                const moneyMatch = payment.match(/\d+/);
+                if (moneyMatch) return `<span class="payment-badge payment-cash">Нал ${moneyMatch[0]} ₽</span>`;
+                return `<span class="payment-badge payment-cash">Наличные</span>`;
+            }
+            if (lowerPayment.includes('безнал') || lowerPayment === 'без') return `<span class="payment-badge payment-cashless">Безнал${noteStr}</span>`;
+            return `<span class="payment-badge payment-cashless">${payment}${noteStr}</span>`;
         }
 
-        // ФОРМАТИРОВАНИЕ ОПЛАТЫ - ТОЧНО КАК У ВЛАДЕЛЬЦА
-        // Примеры: "Безнал", "Безнал (РосБилет)", "Нал 500 ₽", "Наличные"
-       function formatPayment(payment, note) {
-        const noteStr = note ? ` (${note})` : '';
-        if (!payment || payment === '') return `<span class="payment-badge payment-cashless">Безнал${noteStr}</span>`;
-        const lowerPayment = payment.toLowerCase();
-        if (lowerPayment.includes('нал') || lowerPayment.includes('налич') || /^\d/.test(payment)) {
-            const moneyMatch = payment.match(/\d+/);
-            if (moneyMatch) return `<span class="payment-badge payment-cash">Нал ${moneyMatch[0]} ₽</span>`;
-            return `<span class="payment-badge payment-cash">Наличные</span>`;
+        function cleanPhoneNumber(phone) {
+            if (!phone) return '';
+            return phone.toString().replace(/[^\d+]/g, '');
         }
-        if (lowerPayment.includes('безнал') || lowerPayment === 'без') return `<span class="payment-badge payment-cashless">Безнал${noteStr}</span>`;
-        return `<span class="payment-badge payment-cashless">${payment}${noteStr}</span>`;
-    }
 
+        async function saveCheckToDatabase(rowId, isChecked, element, type) {
+            if (element.classList.contains('saving')) return;
+            
+            element.classList.add('saving');
+            
+            const oldState = type === 'confirmed' ? 
+                element.closest('.phone-container')?.classList.contains('confirmed') : 
+                element.classList.contains('checked');
+            
+            if (type === 'confirmed') {
+                const container = element.closest('.phone-container');
+                if (container) {
+                    if (isChecked) {
+                        container.classList.add('confirmed');
+                    } else {
+                        container.classList.remove('confirmed');
+                    }
+                }
+            } else {
+                if (isChecked) {
+                    element.classList.add('checked');
+                    element.innerHTML = '✅ На месте';
+                } else {
+                    element.classList.remove('checked');
+                    element.innerHTML = '⏳ Ожидание';
+                }
+            }
+            
+            const item = allData.find(d => d.rowId === rowId);
+            if (item) {
+                if (type === 'confirmed') item.confirmed = isChecked;
+                else item.checked = isChecked;
+            }
+            
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rowId: rowId, checked: isChecked, type: type })
+                });
+                
+                showToast(type === 'confirmed' ? (isChecked ? '✅ Бронь подтверждена' : '❌ Бронь отменена') : (isChecked ? '✅ Пассажир на месте' : '⏳ Ожидание пассажира'));
+            } catch (error) {
+                console.error('Save error:', error);
+                if (type === 'confirmed') {
+                    const container = element.closest('.phone-container');
+                    if (container) {
+                        if (oldState) {
+                            container.classList.add('confirmed');
+                        } else {
+                            container.classList.remove('confirmed');
+                        }
+                    }
+                    if (item) item.confirmed = oldState;
+                } else {
+                    if (oldState) {
+                        element.classList.add('checked');
+                        element.innerHTML = '✅ На месте';
+                    } else {
+                        element.classList.remove('checked');
+                        element.innerHTML = '⏳ Ожидание';
+                    }
+                    if (item) item.checked = oldState;
+                }
+                showToast('❌ Ошибка сохранения', true);
+            } finally {
+                element.classList.remove('saving');
+            }
+        }
 
         function filterByDriver(data) {
             if (currentDriver === 'all') return data;
@@ -454,7 +645,8 @@
                     driver: item.driver || 'Не назначен',
                     payment: item.payment || '',
                     note: item.note || '',
-                    checked: !!item.checked
+                    checked: !!item.checked,
+                    confirmed: !!item.confirmed
                 })).filter(item => item.date && item.route && item.time);
 
                 renderCurrentView();
@@ -462,41 +654,6 @@
                 document.getElementById('mainContent').innerHTML = `<div class="empty-state">Ошибка: ${error.message}</div>`;
             }
         }
-
-   // ОБНОВЛЕННАЯ ФУНКЦИЯ ЯВКИ
-async function savePresenceToLocal(rowId, isChecked, element) {
-    element.disabled = true;
-    const originalText = element.innerHTML;
-    element.innerHTML = '⏳...';
-
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            // Убираем mode: 'no-cors'
-            headers: { 'Content-Type': 'text/plain' }, // Для Google Script лучше использовать text/plain при POST
-            body: JSON.stringify({
-                rowId: rowId,
-                checked: isChecked,
-                type: 'present'
-            })
-        });
-
-        // Если дошли сюда, значит запрос ушел
-        saveCheckToStorage(`presence_${rowId}`, isChecked);
-        const item = allData.find(d => d.rowId === rowId);
-        if (item) item.checked = isChecked;
-        
-        element.classList.toggle('checked', isChecked);
-        element.innerHTML = isChecked ? '✅ На месте' : '⏳ Ожидание';
-    } catch (error) {
-        // Если ошибка здесь, значит скрипт был развернут не как "Web App" или не с нужными правами
-        console.error('Ошибка:', error);
-        alert('Ошибка сервера. Убедитесь, что скрипт опубликован с доступом для всех.');
-        element.innerHTML = originalText;
-    } finally {
-        element.disabled = false;
-    }
-}
 
         function getFilteredData() { return filterByDriver(allData); }
         function getUniqueDates() { return getUpcomingDates([...new Set(getFilteredData().map(item => item.date))], 7); }
@@ -571,7 +728,7 @@ async function savePresenceToLocal(rowId, isChecked, element) {
                                             <tr>
                                                 <th>№</th>
                                                 <th>ФИО</th>
-                                                <th>Телефон</th>
+                                                <th>Телефон / Бронь</th>
                                                 <th>Мест</th>
                                                 <th>Оплата</th>
                                                 <th>Явка</th>
@@ -579,17 +736,28 @@ async function savePresenceToLocal(rowId, isChecked, element) {
                                         </thead>
                                         <tbody>
                                             ${passengers.map((p, idx) => {
-                                                const presenceKey = `presence_${p.rowId}`;
-                                                const isPresent = arrivalChecks[presenceKey] || p.checked || false;
+                                                const cleanPhone = cleanPhoneNumber(p.phone);
+                                                const phoneDisplay = p.phone || '—';
+                                                const phoneLinkHtml = cleanPhone ? 
+                                                    `<a href="tel:${cleanPhone}" class="phone-link" onclick="event.stopPropagation();">
+                                                        <span>${phoneDisplay}</span>
+                                                    </a>` : 
+                                                    `<span class="phone-link" style="cursor: default;"><span>${phoneDisplay}</span></span>`;
+                                                
                                                 return `
                                                 <tr>
                                                     <td>${idx + 1}</td>
                                                     <td><strong>${escapeHtml(p.name)}</strong></td>
-                                                    <td>${escapeHtml(p.phone)}</small></td>
+                                                    <td>
+                                                        <div class="phone-container ${p.confirmed ? 'confirmed' : ''}" data-rowid="${p.rowId}">
+                                                            ${phoneLinkHtml}
+                                                            <button class="btn-confirm-status" data-rowid="${p.rowId}"></button>
+                                                        </div>
+                                                    </td>
                                                     <td>${p.seats}</td>
-                                                    <td>${formatPayment(p.payment, p.note)}</small></td>
+                                                    <td>${formatPayment(p.payment, p.note)}</td>
                                                     <td class="check-cell">
-                                                        <button class="btn-presence ${isPresent ? 'checked' : ''}" data-rowid="${p.rowId}">${isPresent ? '✅ На месте' : '⏳ Ожидание'}</button>
+                                                        <button class="btn-presence ${p.checked ? 'checked' : ''}" data-rowid="${p.rowId}">${p.checked ? '✅ На месте' : '⏳ Ожидание'}</button>
                                                     </td>
                                                 </tr>`;
                                             }).join('')}
@@ -602,7 +770,6 @@ async function savePresenceToLocal(rowId, isChecked, element) {
                 </div>
             `).join('');
 
-            // Обработчики для заголовков времени
             document.querySelectorAll('.time-header').forEach(header => {
                 const time = header.dataset.time;
                 const content = document.getElementById(`tc-${time.replace(':', '')}`);
@@ -611,12 +778,24 @@ async function savePresenceToLocal(rowId, isChecked, element) {
                 };
             });
 
-            // Обработчики для кнопок явки
+            document.querySelectorAll('.btn-confirm-status').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const container = btn.closest('.phone-container');
+                    if (container) {
+                        const rowId = Number(container.dataset.rowid);
+                        const isConfirmed = container.classList.contains('confirmed');
+                        saveCheckToDatabase(rowId, !isConfirmed, btn, 'confirmed');
+                    }
+                };
+            });
+
             document.querySelectorAll('.btn-presence').forEach(btn => {
-                btn.onclick = () => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
                     const rowId = Number(btn.dataset.rowid);
-                    const isCurrentlyChecked = btn.classList.contains('checked');
-                    savePresenceToLocal(rowId, !isCurrentlyChecked, btn);
+                    const isChecked = btn.classList.contains('checked');
+                    saveCheckToDatabase(rowId, !isChecked, btn, 'present');
                 };
             });
         }
@@ -637,7 +816,6 @@ async function savePresenceToLocal(rowId, isChecked, element) {
             renderCurrentView();
         };
 
-        loadChecksFromStorage();
         loadData();
     </script>
 </body>
