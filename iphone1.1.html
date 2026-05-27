@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#1e3a5f">
     <title>Владелец | Учёт пассажиров</title>
     <style>
+        /* Стили оставлены без изменений */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; background: #f0f2f5; color: #1a1a1a; padding: 20px; }
         ._0xbc1 { max-width: 1200px; margin: 0 auto; }
@@ -80,21 +81,35 @@
         <div class="_0xinf">Нажмите на дату → время → общая сводка. Изменения синхронизируются автоматически.</div>
     </div>
     <script>
-    
-        const _0xcr = (function() {
-            const list = [
-                'aHR0cHM6Ly9zaXRlNDQubmlraXRvc2tvemlhLndvcmtlcnMuZGV2Lw==', // URL
-                'dFdXcE5JS0k2NkhRNC1C', // TOKEN
-                'Y2FsbFByb3h5', 'Z2V0RGF0YQ==', 'c2F2ZVN0YXR1cw==', 'Y29uZmlybWVk', 'cHJlc2VudA=='
-            ];
-            return function(idx) { return atob(list[idx]); };
-        })();
-
-        const _0xlu = _0xcr(0);
-        const _0xat = _0xcr(1);
+        // Теперь ключи и URL пустые. Они подтянутся из Cloudflare после ввода пароля.
+        let _0xlu = ""; 
+        let _0xat = "";
+        
         const _0xto = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
-
         let _0xda = [], _0xcv = 'dates', _0xsd = null, _0xcd = 'all';
+
+        // --- НОВАЯ ФУНКЦИЯ АВТОРИЗАЦИИ ---
+        async function _0xauth() {
+            const p = prompt("Введите пароль доступа:");
+            if (!p) return;
+            try {
+                const res = await fetch(window.location.href, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "get_config", password: p })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    _0xlu = data.url;
+                    _0xat = data.token;
+                    _0xld(); // Только после этого загружаем данные
+                } else {
+                    alert("Неверный пароль");
+                    _0xauth();
+                }
+            } catch (e) {
+                alert("Ошибка связи с сервером");
+            }
+        }
 
         async function _0xfp(act, bodyData = {}) {
             let res = await fetch(_0xlu, {
@@ -201,7 +216,7 @@
         async function _0xld() {
             try {
                 let nm = (_0xcd === 'all') ? 'Владелец' : _0xcd;
-                let dt = await _0xfp(_0xcr(3), { driver: nm });
+                let dt = await _0xfp('getData', { driver: nm }); // Вместо _0xcr(3) используем 'getData'
                 if (!dt || dt.error) throw new Error(dt?.error || 'Ошибка');
                 _0xda = dt.filter(i => i && i.date && i.route && i.time).map(i => ({ ...i, date: _0xnd(i.date) })).filter(i => i.date);
                 if (_0xda.length === 0) {
@@ -217,7 +232,7 @@
         async function _0xss(id, chk, el, tp) {
             if (el.classList.contains('saving')) return;
             el.classList.add('saving');
-            let isC = (tp === _0xcr(5)), cnt = el.closest('._0xphc'), itm = _0xda.find(d => d.rowId === id);
+            let isC = (tp === 'confirmed'), cnt = el.closest('._0xphc'), itm = _0xda.find(d => d.rowId === id);
             if (isC) {
                 if (cnt) chk ? cnt.classList.add('confirmed') : cnt.classList.remove('confirmed');
             } else {
@@ -225,7 +240,7 @@
                 else { el.classList.remove('checked'); el.innerHTML = '⏳ Ожидание'; }
             }
             try {
-                await _0xfp(_0xcr(4), { rowId: id, checked: chk, type: tp });
+                await _0xfp('saveStatus', { rowId: id, checked: chk, type: tp }); // Вместо _0xcr(4) используем 'saveStatus'
                 _0xstst(isC ? (chk ? '✅ Бронь подтверждена' : '❌ Бронь отменена') : (chk ? '✅ Пассажир на месте' : '⏳ Ожидание пассажира'));
                 if (itm) isC ? itm.confirmed = chk : itm.checked = chk;
             } catch (err) {
@@ -285,24 +300,25 @@
             document.querySelectorAll('._0xbcs').forEach(b => {
                 b.onclick = (e) => {
                     e.stopPropagation(); let c = b.closest('._0xphc');
-                    if (c) _0xss(Number(c.dataset.rowid), !c.classList.contains('confirmed'), b, _0xcr(5));
+                    if (c) _0xss(Number(c.dataset.rowid), !c.classList.contains('confirmed'), b, 'confirmed'); // Заменено _0xcr(5) на 'confirmed'
                 };
             });
             document.querySelectorAll('._0xbpr').forEach(b => {
-                b.onclick = (e) => { e.stopPropagation(); _0xss(Number(b.dataset.rowid), !b.classList.contains('checked'), b, _0xcr(6)); };
+                b.onclick = (e) => { e.stopPropagation(); _0xss(Number(b.dataset.rowid), !b.classList.contains('checked'), b, 'present'); }; // Заменено _0xcr(6) на 'present'
             });
         }
 
         function _0xrc() {
             if (_0xcv === 'dates') _0xrdt(); else _0xrtm();
             let bb = document.getElementById('_0xbb'); if (bb) bb.style.display = (_0xcv === 'dates') ? 'none' : 'inline-block';
-            document.getElementById('_0xst').innerHTML = (_0xcd === 'all') ? 'Актуальные рейсы на ближайшие дни' : `Рейсы для ${0xcd}`;
+            document.getElementById('_0xst').innerHTML = (_0xcd === 'all') ? 'Актуальные рейсы на ближайшие дни' : `Рейсы для ${_0xcd}`;
         }
 
         document.getElementById('_0xds').onchange = (e) => { _0xcd = e.target.value; _0xsd = null; _0xcv = 'dates'; _0xld(); };
         document.getElementById('_0xbb').onclick = () => { _0xcv = 'dates'; _0xsd = null; _0xrc(); };
         
-        _0xld();
+        // Запускаем авторизацию при загрузке
+        _0xauth();
     </script>
 </body>
 </html>
