@@ -820,7 +820,27 @@
             renderCurrentView();
         };
     }
-
+  (function() {
+        // Принудительно устанавливаем заголовки для iOS
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            console.log('iOS detected - applying fixes');
+            
+            // Перехватываем fetch
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options) {
+                console.log('Fetch:', url);
+                options = options || {};
+                options.mode = 'cors';
+                options.credentials = 'omit';
+                options.headers = options.headers || {};
+                options.headers['Accept'] = 'application/json';
+                return originalFetch(url, options).catch(err => {
+                    console.error('Fetch failed:', err);
+                    throw err;
+                });
+            };
+        }
+    })();
     loadData();
 </script>
 </body>
