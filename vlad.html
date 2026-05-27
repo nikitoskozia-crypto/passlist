@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#1e3a5f">
     <title>Влад Н. | Учёт пассажиров</title>
     <style>
-        /* --- СТИЛИ АВТОРИЗАЦИИ И БЛЮРА (из кода владельца) --- */
+        
         #auth-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -135,7 +135,6 @@
             pointer-events: none;
         }
 
-        /* --- ОСНОВНЫЕ СТИЛИ (остаются без изменений) --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; background: #f0f2f5; color: #1a1a1a; padding: 12px; }
         .container { max-width: 800px; margin: 0 auto; }
@@ -182,7 +181,6 @@
 </head>
 <body>
 
-    <!-- Окно авторизации (из кода владельца) -->
     <div id="auth-overlay">
         <div class="auth-card">
             <div class="lock-icon">
@@ -215,7 +213,7 @@
     </div>
 
     <script>
-        // ========== БЕЗОПАСНАЯ КОНФИГУРАЦИЯ (из кода владельца) ==========
+        
         const WORKER_URL = "https://site44.nikitoskozia.workers.dev/";
         const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
         const MY_DRIVER_NAME = 'Влад Н.';
@@ -224,10 +222,9 @@
         let currentView = 'dates';
         let selectedDate = null;
         let currentDriver = MY_DRIVER_NAME;
-        let _0xlu = "";      // URL таблицы
-        let _0xat = "";      // Токен сессии
+        let _0xlu = "";    
+        let _0xat = "";      
 
-        // ========== ФУНКЦИЯ АВТОРИЗАЦИИ (из кода владельца) ==========
         async function _0xauth() {
             const passField = document.getElementById('auth-pass');
             const submitBtn = document.getElementById('auth-submit');
@@ -244,7 +241,7 @@
                 const res = await fetch(WORKER_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: "get_config", password: p })
+                    body: JSON.stringify({ action: "get_config", password: p, targetDriver: MY_DRIVER_NAME})
                 });
                 
                 const data = await res.json();
@@ -296,18 +293,25 @@
             setTimeout(() => toast.remove(), 1500);
         }
 
-        function formatPayment(payment, note) {
-            const noteStr = note ? ` (${note})` : '';
-            if (!payment || payment === '') return `<span class="payment-badge payment-cashless">Безнал${noteStr}</span>`;
-            const lowerPayment = payment.toLowerCase();
-            if (lowerPayment.includes('нал') || lowerPayment.includes('налич') || /^\d/.test(payment)) {
-                const moneyMatch = payment.match(/\d+/);
-                if (moneyMatch) return `<span class="payment-badge payment-cash">Нал ${moneyMatch[0]} ₽</span>`;
-                return `<span class="payment-badge payment-cash">Наличные</span>`;
-            }
-            if (lowerPayment.includes('безнал') || lowerPayment === 'без') return `<span class="payment-badge payment-cashless">Безнал${noteStr}</span>`;
-            return `<span class="payment-badge payment-cashless">${payment}${noteStr}</span>`;
+        function formatPayment(p, n) {
+    let ns = n ? ` (${n})` : '';
+    if (!p || p === '') return `<span class="payment-badge payment-cashless">Безнал${ns}</span>`;
+    let lp = p.toLowerCase();
+    
+    // Проверяем, относится ли запись к наличным
+    if (lp.includes('нал') || lp.includes('налич') || /^\d/.test(p)) {
+        // Если в строке есть сложные условия/уточнения ("по", "х", "*") – выводим текст полностью
+        if (lp.includes('по') || lp.includes('x') || lp.includes('*')) {
+            return `<span class="payment-badge payment-cash">${p}${ns}</span>`;
         }
+        // Если это просто число – добавляем знак рубля
+        let m = p.match(/\d+/);
+        return m ? `<span class="payment-badge payment-cash">Нал ${m[0]} ₽</span>` : `<span class="payment-badge payment-cash">${p}${ns}</span>`;
+    }
+    
+    // Если это безналичный расчет
+    return lp.includes('безнал') || lp === 'без' ? `<span class="payment-badge payment-cashless">Безнал${ns}</span>` : `<span class="payment-badge payment-cashless">${p}${ns}</span>`;
+}
 
         function filterByDriver(data) {
             return data.filter(item => item.driver === currentDriver);
@@ -323,6 +327,7 @@
         function isDateUpcoming(dateStr) {
             let today = new Date();
             today.setHours(0, 0, 0, 0);
+            today.setDate(today.getDate() - 1);
             let date = parseDate(dateStr);
             date.setHours(0, 0, 0, 0);
             return date >= today;
