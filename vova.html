@@ -1,403 +1,823 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=yes,viewport-fit=cover">
-<title>Владимир Л. | Учёт пассажиров</title>
-<style>
-/* --- СТИЛИ АВТОРИЗАЦИИ И БЛЮРА --- */
-#auth-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(240,242,245,0.4);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s,visibility .4s}
-.auth-card{background:rgba(255,255,255,0.97);padding:36px 32px;border-radius:32px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.35);width:90%;max-width:380px;text-align:center;animation:fadeInScale .3s;border:1px solid rgba(255,255,255,0.5);position:relative;z-index:10000}
-@keyframes fadeInScale{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
-.auth-card h2{color:#1e3a5f;margin-bottom:8px;font-size:28px;font-weight:700}
-.auth-subtitle{color:#6c757d;font-size:14px;margin-bottom:28px}
-.auth-card input{width:100%;padding:16px 18px;border-radius:16px;border:2px solid #e9ecef;font-size:16px;margin-bottom:20px;outline:none;background:#f8f9fa;text-align:center}
-.auth-card input:focus{border-color:#1e3a5f;background:#fff;box-shadow:0 0 0 3px rgba(30,58,95,0.1)}
-.auth-card button{width:100%;padding:16px;border-radius:16px;background:linear-gradient(135deg,#1e3a5f,#2c5387);color:#fff;border:none;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 4px 14px rgba(30,58,95,0.35)}
-.auth-card button:active{transform:scale(.97)}
-.auth-error{color:#dc3545;font-size:14px;margin-top:16px;display:none;background:#f8d7da;padding:10px;border-radius:12px}
-.lock-icon{background:linear-gradient(135deg,#1e3a5f,#2c5387);width:60px;height:60px;border-radius:30px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px auto}
-.lock-icon svg{width:28px;height:28px;stroke:#fff;stroke-width:1.8;fill:none}
-body.authenticated #auth-overlay{opacity:0;visibility:hidden;pointer-events:none}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#1e3a5f">
+    <title>Владимир Л. | Учёт пассажиров</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-/* --- СТИЛИ ОСНОВНОГО ИНТЕРФЕЙСА В ОРИГИНАЛЕ --- */
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,sans-serif;background:#f0f2f5;color:#1a1a1a;padding:12px}
-.container{max-width:800px;margin:0 auto}
-h1{font-size:22px;margin-bottom:8px;color:#1e3a5f;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.back-btn{background:0 0;border:none;font-size:28px;cursor:pointer;color:#1e3a5f;padding:8px 12px;border-radius:40px;min-width:44px;min-height:44px}
-.subtitle{color:#666;margin-bottom:16px;border-left:4px solid #1e3a5f;padding-left:12px;font-size:14px}
-.dates-scroll{display:flex;gap:10px;overflow-x:auto;padding:8px 0 16px;margin-bottom:8px;scrollbar-width:none}
-.date-chip{background:#fff;border:1px solid #ddd;border-radius:40px;padding:10px 16px;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0;min-height:44px;display:flex;align-items:center;gap:6px}
-.date-chip.active{background:#1e3a5f;color:#fff;border-color:#1e3a5f}
-.date-chip .date-seats{font-size:10px;opacity:.8}
-.time-group{background:#fff;border-radius:16px;margin-bottom:16px;overflow:hidden;box-shadow:0 2px 8px #0000000d}
-.time-header{background:#1e3a5f;color:#fff;padding:14px 18px;font-weight:700;font-size:17px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;min-height:52px}
-.time-header .time-seats{font-size:14px;background:#ffffff33;padding:4px 12px;border-radius:40px}
-.time-content{display:none}
-.summary-block{background:#f8f9fa;padding:14px 18px;cursor:pointer;border-bottom:1px solid #eef2f6;display:flex;justify-content:space-between;align-items:center}
-.summary-title{font-weight:600;font-size:15px;color:#1e3a5f}
-.summary-seats{background:#e0e7f0;padding:4px 12px;border-radius:40px;font-size:13px}
-.route-detail{border-bottom:1px solid #eef2f6;padding:14px 16px}
-.route-title{font-weight:700;font-size:16px;color:#1e3a5f;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid #1e3a5f;display:inline-block}
-.route-total{font-size:13px;color:#003cff;font-weight:600;margin-left:10px}
-.table-wrapper{overflow-x:auto;margin-top:10px;border-radius:14px}
-.passengers-table{width:100%;border-collapse:collapse;background:#fff;min-width:750px;font-size:14px}
-.passengers-table td,.passengers-table th{padding:14px;text-align:left;border-bottom:1px solid #eee;vertical-align:middle}
-.passengers-table th{background:#f8f9fa;font-weight:600;color:#555;font-size:13px}
-.payment-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;white-space:nowrap}
-.payment-cash{background:#d4edda;color:#04701d;border:1px solid #c3e6cb}
-.payment-cashless{background:#e8d9ff;color:#2b0367;border:1px solid #d1c4e9}
-.phone-link{text-decoration:none;color:inherit;display:inline-flex;align-items:center;flex:1;cursor:pointer}
-.phone-link span{font-weight:600;color:#444;font-size:14px}
-.phone-container{display:inline-flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 14px;border-radius:14px;background:#fff;border:1.5px solid #edf0f5;min-width:175px}
-.btn-confirm-status{background:0 0;border:none;width:28px;height:28px;border-radius:50%;border:2px solid #d1d8e0;background:#fff;cursor:pointer}
-.btn-confirm-status::after{content:'✓';color:transparent;font-size:13px;font-weight:900}
-.phone-container.confirmed{background:#f1fcf4;border-color:#c3e6cb}
-.phone-container.confirmed .btn-confirm-status{background:linear-gradient(135deg,#00c853,#00a844);border-color:#00a844}
-.phone-container.confirmed .btn-confirm-status::after{color:#fff}
-.btn-presence{display:inline-flex;align-items:center;justify-content:center;padding:6px 12px;border-radius:12px;font-size:11px;font-weight:700;border:2px solid #e0e6ed;background:0 0;color:#8395a7;cursor:pointer;min-width:90px;min-height:34px;text-transform:uppercase}
-.btn-presence.checked{background:#3cba0a;color:#fff;border-color:#3cba0a;box-shadow:0 4px 12px #44bd3260}
-.empty-state{text-align:center;padding:40px;background:#fff;border-radius:16px;color:#999}
-.loading{text-align:center;padding:40px;color:#666}
-.info-note{background:#e8f4fd;border-radius:12px;padding:10px 14px;margin-top:16px;font-size:11px;color:#1e3a5f}
-.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#1e3a5f;color:#fff;padding:10px 20px;border-radius:40px;font-size:13px;z-index:1000;animation:fadeInOut 1.5s ease;white-space:nowrap}
-@keyframes fadeInOut{0%{opacity:0;transform:translateX(-50%) translateY(20px)}15%{opacity:1;transform:translateX(-50%) translateY(0)}85%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-20px)}}
-.btn-presence.saving,.btn-confirm-status.saving{opacity:.5;pointer-events:none}
-@media(max-width:700px){.passengers-table{min-width:700px}.btn-presence{padding:4px 10px;font-size:10px;min-width:80px;min-height:30px}.phone-container{min-width:160px;padding:6px 10px}.btn-confirm-status{width:32px;height:32px}}
-</style>
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a1a;
+            padding: 12px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 22px;
+            margin-bottom: 8px;
+            color: #1e3a5f;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #1e3a5f;
+            padding: 8px 12px;
+            border-radius: 40px;
+            min-width: 44px;
+            min-height: 44px;
+        }
+
+        .back-btn:active {
+            background: #e0e7f0;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 16px;
+            border-left: 4px solid #1e3a5f;
+            padding-left: 12px;
+            font-size: 14px;
+        }
+
+        .dates-scroll {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 8px 0 16px 0;
+            margin-bottom: 8px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .date-chip {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .date-chip:active {
+            transform: scale(0.97);
+            background: #eef2f6;
+        }
+
+        .date-chip.active {
+            background: #1e3a5f;
+            color: white;
+            border-color: #1e3a5f;
+        }
+
+        .date-chip .date-seats {
+            font-size: 10px;
+            opacity: 0.8;
+        }
+
+        .time-group {
+            background: white;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .time-header {
+            background: #1e3a5f;
+            color: white;
+            padding: 14px 18px;
+            font-weight: 700;
+            font-size: 17px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 52px;
+        }
+
+        .time-header:active {
+            background: #2c4a6e;
+        }
+
+        .time-header .time-seats {
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 40px;
+        }
+
+        .time-content {
+            padding: 0;
+            display: none;
+        }
+
+        .summary-block {
+            background: #f8f9fa;
+            padding: 14px 18px;
+            cursor: pointer;
+            border-bottom: 1px solid #eef2f6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-block:active {
+            background: #eef2f6;
+        }
+
+        .summary-title {
+            font-weight: 600;
+            font-size: 15px;
+            color: #1e3a5f;
+        }
+
+        .summary-seats {
+            background: #e0e7f0;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 13px;
+        }
+
+        .route-detail {
+            border-bottom: 1px solid #eef2f6;
+            padding: 14px 16px;
+        }
+
+        .route-title {
+            font-weight: 700;
+            font-size: 16px;
+            color: #1e3a5f;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #1e3a5f;
+            display: inline-block;
+        }
+
+        .route-total {
+            font-size: 13px;
+            color: #003cff;
+            font-weight: 600;
+            margin-left: 10px;
+            display: inline-block;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 10px;
+            border-radius: 14px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .passengers-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            min-width: 750px;
+            font-size: 14px;
+        }
+
+        .passengers-table th,
+        .passengers-table td {
+            padding: 14px 14px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .passengers-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+            font-size: 13px;
+        }
+
+        .payment-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .payment-cash {
+            background: #d4edda;
+            color: #04701d;
+            border: 1px solid #c3e6cb;
+        }
+
+        .payment-cashless {
+            background: #e8d9ff;
+            color: #2b0367;
+            border: 1px solid #d1c4e9;
+        }
+
+        /* --- СТИЛИ ДЛЯ КНОПКИ БРОНИРОВАНИЯ (ТОЧНО КАК У ВЛАДЕЛЬЦА) --- */
+        .phone-link {
+            text-decoration: none;
+            color: inherit;
+            display: inline-flex;
+            align-items: center;
+            flex: 1;
+            cursor: pointer;
+            transition: opacity 0.1s ease;
+        }
+        .phone-link:active {
+            opacity: 0.6;
+            transform: scale(0.98);
+        }
+        .phone-link span {
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            color: #444;
+            font-size: 14px;
+        }
+        
+        .phone-container {
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            gap: 12px;
+            padding: 8px 14px; 
+            border-radius: 14px; 
+            background: #ffffff; 
+            border: 1.5px solid #edf0f5;
+            min-width: 175px; 
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1); 
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .phone-container:active {
+            transform: scale(0.97);
+            background: #f5f5f5;
+        }
+        
+        .btn-confirm-status {
+            background: none; 
+            border: none; 
+            padding: 0; 
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 2px solid #d1d8e0;
+            transition: all 0.1s ease;
+            background: white;
+            flex-shrink: 0;
+        }
+        .btn-confirm-status:active { 
+            transform: scale(0.85);
+            background: #e0e7f0;
+        }
+        .btn-confirm-status::after { 
+            content: '✓'; 
+            color: transparent; 
+            font-size: 13px; 
+            font-weight: 900; 
+            transition: all 0.1s ease; 
+        }
+        
+        .phone-container.confirmed { 
+            background: #f1fcf4; 
+            border-color: #c3e6cb; 
+            box-shadow: 0 4px 10px rgba(46, 125, 50, 0.1);
+        }
+        .phone-container.confirmed .phone-link span { color: #1b5e20; }
+        .phone-container.confirmed .btn-confirm-status { 
+            background: linear-gradient(135deg, #00c853 0%, #00a844 100%); 
+            border-color: #00a844; 
+            box-shadow: 0 2px 5px rgba(39, 174, 96, 0.3);
+        }
+        .phone-container.confirmed .btn-confirm-status::after { color: white; }
+        
+        .btn-confirm-status.saving {
+            opacity: 0.5;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+        /* ------------------------------------ */
+
+        .btn-presence {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 2px solid #e0e6ed;
+            background: transparent;
+            color: #8395a7;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 90px;
+            min-height: 34px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        .btn-presence:active {
+            transform: scale(0.95);
+        }
+
+        .btn-presence.checked {
+            background: linear-gradient(135deg, #3cba0a 0%, #3cba0a 100%);
+            color: white;
+            border-color: #3cba0a;
+            box-shadow: 0 4px 12px rgba(68, 189, 50, 0.35);
+        }
+
+        .btn-presence.saving {
+            opacity: 0.5;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 16px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .info-note {
+            background: #e8f4fd;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-top: 16px;
+            font-size: 11px;
+            color: #1e3a5f;
+        }
+
+        .check-cell {
+            text-align: center !important;
+            width: 110px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e3a5f;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 13px;
+            z-index: 1000;
+            animation: fadeInOut 1.5s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        }
+
+        @media (max-width: 700px) {
+            .passengers-table {
+                font-size: 13px;
+                min-width: 700px;
+            }
+            .passengers-table th,
+            .passengers-table td {
+                padding: 10px 10px;
+            }
+            .btn-presence {
+                padding: 4px 10px;
+                font-size: 10px;
+                min-width: 80px;
+                min-height: 30px;
+            }
+            .payment-badge {
+                padding: 3px 10px;
+                font-size: 11px;
+            }
+            .phone-container {
+                min-width: 160px;
+                padding: 6px 10px;
+            }
+            .btn-confirm-status {
+                width: 32px;
+                height: 32px;
+            }
+        }
+    </style>
 </head>
+
 <body>
-
-<div id="auth-overlay">
-    <div class="auth-card">
-        <div class="lock-icon">
-            <svg viewBox="0 0 24 24" stroke="currentColor">
-                <path d="M12 2C9.24 2 7 4.24 7 7v3H6c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8c0-1.1-.9-2-2-2h-1V7c0-2.76-2.24-5-5-5z" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M12 14v3" stroke-linecap="round"/>
-            </svg>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 8px;">
+            <h1>
+                <button class="back-btn" id="backBtn" style="display: none;">←</button>
+                <span id="pageTitle">🚛 Владимир Л. — Учёт пассажиров</span>
+            </h1>
         </div>
-        <h2>Добро пожаловать</h2>
-        <div class="auth-subtitle">Введите пароль водителя для доступа</div>
-        <input type="password" id="auth-pass" placeholder="Пароль" autofocus>
-        <button id="auth-submit">Войти в систему</button>
-        <div class="auth-error" id="auth-err">Неверный пароль</div>
+
+        <div class="subtitle" id="subtitle">Ваши рейсы на ближайшие дни</div>
+        <div id="mainContent">
+            <div class="loading">Загрузка...</div>
+        </div>
+        <div class="info-note" id="driverNote">Здесь отображаются только рейсы, где в колонке "Водитель" указано "Владимир Л."</div>
     </div>
-</div>
 
-<div class="container">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:8px">
-        <h1><button class="back-btn" id="backBtn" style="display:none">←</button><span>🚛 Владимир Л. — Учёт пассажиров</span></h1>
-    </div>
-    <div class="subtitle" id="subtitle">Ваши рейсы на ближайшие дни</div>
-    <div id="mainContent"><div class="loading">Загрузка данных...</div></div>
-    <div class="info-note">Здесь отображаются только рейсы, где в колонке "Водитель" указано "Владимир Л."</div>
-</div>
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxBeKVIwCUN-pcI2WvdzziYUNQgB3XrKiNfDhzloOJN3Pq2_MfUmlzXxg1huSQ5l_1BZA/exec';
+        const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
+        const MY_DRIVER_NAME = 'Владимир Л.';
+        let currentDriver = MY_DRIVER_NAME;
+        let allData = [];
+        let currentView = 'dates';
+        let selectedDate = null;
 
-<script>
-const WORKER_URL = 'https://site44.nikitoskozia.workers.dev/';
-const TIME_ORDER = ['03:30','10:00','11:30','14:00','15:30','16:30','18:00','21:30'];
-const MY_DRIVER_NAME = 'Владимир Л.';
+        let arrivalChecks = {};
 
-let allData = [], currentView = 'dates', selectedDate = null, currentDriver = MY_DRIVER_NAME;
-let _0xlu = "", _0xat = ""; // 
-
-async function _0xauth() {
-            const passField = document.getElementById('auth-pass');
-            const submitBtn = document.getElementById('auth-submit');
-            const errLabel = document.getElementById('auth-err');
+        function showToast(message, isError = false) {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) existingToast.remove();
             
-            const p = passField.value;
-            if (!p) return;
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            toast.style.background = isError ? '#c62828' : '#1e3a5f';
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 1500);
+        }
 
-            submitBtn.innerText = "Проверка...";
-            submitBtn.disabled = true;
-            errLabel.style.display = 'none';
+        function formatPayment(payment, note) {
+            const noteStr = note ? ` (${note})` : '';
+            if (!payment || payment === '') return `<span class="payment-badge payment-cashless">Безнал${noteStr}</span>`;
+            const lowerPayment = payment.toLowerCase();
+            if (lowerPayment.includes('нал') || lowerPayment.includes('налич') || /^\d/.test(payment)) {
+                const moneyMatch = payment.match(/\d+/);
+                if (moneyMatch) return `<span class="payment-badge payment-cash">Нал ${moneyMatch[0]} ₽</span>`;
+                return `<span class="payment-badge payment-cash">Наличные</span>`;
+            }
+            if (lowerPayment.includes('безнал') || lowerPayment === 'без') return `<span class="payment-badge payment-cashless">Безнал${noteStr}</span>`;
+            return `<span class="payment-badge payment-cashless">${payment}${noteStr}</span>`;
+        }
 
+        function cleanPhoneNumber(phone) {
+            if (!phone) return '';
+            return phone.toString().replace(/[^\d+]/g, '');
+        }
+
+        async function saveCheckToDatabase(rowId, isChecked, element, type) {
+            if (element.classList.contains('saving')) return;
+            
+            element.classList.add('saving');
+            
+            const oldState = type === 'confirmed' ? 
+                element.closest('.phone-container')?.classList.contains('confirmed') : 
+                element.classList.contains('checked');
+            
+            if (type === 'confirmed') {
+                const container = element.closest('.phone-container');
+                if (container) {
+                    if (isChecked) {
+                        container.classList.add('confirmed');
+                    } else {
+                        container.classList.remove('confirmed');
+                    }
+                }
+            } else {
+                if (isChecked) {
+                    element.classList.add('checked');
+                    element.innerHTML = '✅ На месте';
+                } else {
+                    element.classList.remove('checked');
+                    element.innerHTML = '⏳ Ожидание';
+                }
+            }
+            
+            const item = allData.find(d => d.rowId === rowId);
+            if (item) {
+                if (type === 'confirmed') item.confirmed = isChecked;
+                else item.checked = isChecked;
+            }
+            
             try {
-                const res = await fetch(WORKER_URL, {
+                await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: "get_config", password: p, targetDriver: MY_DRIVER_NAME})
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rowId: rowId, checked: isChecked, type: type })
                 });
                 
-                const data = await res.json();
-                if (data.success) {
-                    _0xlu = data.url;
-                    _0xat = data.token;
-                    
-                    document.body.classList.add('authenticated');
-                    
-                    setTimeout(() => {
-                        loadData(); 
-                    }, 400);
-
+                showToast(type === 'confirmed' ? (isChecked ? '✅ Бронь подтверждена' : '❌ Бронь отменена') : (isChecked ? '✅ Пассажир на месте' : '⏳ Ожидание пассажира'));
+            } catch (error) {
+                console.error('Save error:', error);
+                if (type === 'confirmed') {
+                    const container = element.closest('.phone-container');
+                    if (container) {
+                        if (oldState) {
+                            container.classList.add('confirmed');
+                        } else {
+                            container.classList.remove('confirmed');
+                        }
+                    }
+                    if (item) item.confirmed = oldState;
                 } else {
-                    errLabel.style.display = 'block';
-                    submitBtn.innerText = "Войти в систему";
-                    submitBtn.disabled = false;
-                    passField.value = '';
-                    passField.focus();
+                    if (oldState) {
+                        element.classList.add('checked');
+                        element.innerHTML = '✅ На месте';
+                    } else {
+                        element.classList.remove('checked');
+                        element.innerHTML = '⏳ Ожидание';
+                    }
+                    if (item) item.checked = oldState;
                 }
-            } catch (e) {
-                alert("Ошибка связи с сервером");
-                submitBtn.innerText = "Войти в систему";
-                submitBtn.disabled = false;
+                showToast('❌ Ошибка сохранения', true);
+            } finally {
+                element.classList.remove('saving');
             }
         }
 
-document.getElementById('auth-submit').onclick = _0xauth;
-document.getElementById('auth-pass').onkeypress = e => { if (e.key === 'Enter') _0xauth() };
-
-// Универсальная обёртка выполнения защищенных запросов к БД
-async function _0xfp(action, bodyData = {}) {
-    let r = await fetch(_0xlu, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ appToken: _0xat, action: action, ...bodyData })
-    });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return r.json();
-}
-
-function showToast(m, e) {
-    document.querySelector('.toast')?.remove();
-    let t = document.createElement('div');
-    t.className = 'toast', t.textContent = m, t.style.background = e ? '#c62828' : '#1e3a5f', document.body.appendChild(t), setTimeout(() => t.remove(), 1500);
-}
-
-function formatPayment(p, n) {
-    let ns = n ? ` (${n})` : '';
-    if (!p || p === '') return `<span class="payment-badge payment-cashless">Безнал${ns}</span>`;
-    let lp = p.toLowerCase();
-    
-    // Проверяем, относится ли запись к наличным
-    if (lp.includes('нал') || lp.includes('налич') || /^\d/.test(p)) {
-        // Если в строке есть сложные условия/уточнения ("по", "х", "*") – выводим текст полностью
-        if (lp.includes('по') || lp.includes('x') || lp.includes('*')) {
-            return `<span class="payment-badge payment-cash">${p}${ns}</span>`;
+        function filterByDriver(data) {
+            if (currentDriver === 'all') return data;
+            return data.filter(item => item.driver === currentDriver);
         }
-        // Если это просто число – добавляем знак рубля
-        let m = p.match(/\d+/);
-        return m ? `<span class="payment-badge payment-cash">Нал ${m[0]} ₽</span>` : `<span class="payment-badge payment-cash">${p}${ns}</span>`;
-    }
-    
-    // Если это безналичный расчет
-    return lp.includes('безнал') || lp === 'без' ? `<span class="payment-badge payment-cashless">Безнал${ns}</span>` : `<span class="payment-badge payment-cashless">${p}${ns}</span>`;
-}
 
-function cleanPhone(p) { return p ? String(p).replace(/[^\d+]/g, '') : '' }
-
-async function saveCheckToDatabase(id, chk, el, type) {
-    if (el.classList.contains('saving')) return;
-    el.classList.add('saving');
-    
-    let old = type === 'confirmed' ? el.closest('.phone-container')?.classList.contains('confirmed') : el.classList.contains('checked');
-    let item = allData.find(d => d.rowId === id);
-    
-    if (type === 'confirmed') {
-        let c = el.closest('.phone-container');
-        c && (chk ? c.classList.add('confirmed') : c.classList.remove('confirmed'));
-    } else {
-        chk ? (el.classList.add('checked'), el.innerHTML = '✅ На месте') : (el.classList.remove('checked'), el.innerHTML = '⏳ Ожидание');
-    }
-    
-    if (item) {
-        if (type === 'confirmed') item.confirmed = chk; else item.checked = chk;
-    }
-    
-    try {
-        // Безопасная отправка статуса на Worker
-        await _0xfp('saveStatus', { rowId: id, checked: chk, type: type });
-        showToast(type === 'confirmed' ? (chk ? '✅ Бронь подтверждена' : '❌ Бронь отменена') : (chk ? '✅ Пассажир на месте' : '⏳ Ожидание пассажира'));
-    } catch (e) {
-        if (type === 'confirmed') {
-            let c = el.closest('.phone-container');
-            c && (old ? c.classList.add('confirmed') : c.classList.remove('confirmed'));
-            if (item) item.confirmed = old;
-        } else {
-            old ? (el.classList.add('checked'), el.innerHTML = '✅ На месте') : (el.classList.remove('checked'), el.innerHTML = '⏳ Ожидание');
-            if (item) item.checked = old;
+        function parseDate(dateStr) {
+            if (!dateStr || typeof dateStr !== 'string') return new Date();
+            let parts = dateStr.split('.');
+            if (parts.length === 3) return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+            return new Date(dateStr);
         }
-        showToast('❌ Ошибка сохранения', true);
-    } finally {
-        el.classList.remove('saving');
-    }
-}
 
-function filterByDriver(d) { return d.filter(i => i.driver === currentDriver) }
-function parseDate(s) { if (!s || typeof s !== 'string') return new Date; let p = s.split('.'); return p.length === 3 ? new Date(p[2], p[1] - 1, p[0]) : new Date(s) }
-function isUpcoming(d) { 
-    let t = new Date(); 
-    t.setHours(0, 0, 0, 0); 
-    t.setDate(t.getDate() - 1); // Сдвигаем порог на 1 день назад, чтобы прошлая дата оставалась на сутки
-    let dt = parseDate(d); 
-    dt.setHours(0, 0, 0, 0);
-    return dt >= t; 
-}
-function getUpcomingDates(a, l = 8) { // Увеличили лимит с 7 до 8, чтобы вчерашний день не вытеснял будущие рейсы
-    let f = a.filter(isUpcoming); 
-    return f.sort((a, b) => parseDate(a) - parseDate(b)), f.slice(0, l); 
-}
+        function isDateUpcoming(dateStr) {
+            let today = new Date();
+            today.setHours(0, 0, 0, 0);
+            let date = parseDate(dateStr);
+            date.setHours(0, 0, 0, 0);
+            return date >= today;
+        }
 
-function convertDate(r) {
-    if (!r) return '';
-    let d = new Date(r);
-    if (!isNaN(d)) {
-        let day = d.getDate(), month = d.getMonth() + 1, year = d.getFullYear();
-        return (day < 10 ? '0' + day : day) + '.' + (month < 10 ? '0' + month : month) + '.' + year;
-    }
-    return String(r);
-}
+        function getUpcomingDates(datesArray, limit = 7) {
+            let futureDates = datesArray.filter(date => isDateUpcoming(date));
+            futureDates.sort((a, b) => parseDate(a) - parseDate(b));
+            return futureDates.slice(0, limit);
+        }
 
-function convertTime(t) {
-    if (!t) return '';
-    if (typeof t === 'string') {
-        let m = t.match(/(\d{2}):(\d{2})/);
-        if (m) return m[1] + ':' + m[2];
-    }
-    let d = new Date(t);
-    if (!isNaN(d)) return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-    return String(t).trim().substring(0, 5);
-}
+        function convertDate(rawDate) {
+            if (!rawDate) return '';
+            let d = new Date(rawDate);
+            if (!isNaN(d.getTime())) {
+                let day = d.getDate(), month = d.getMonth() + 1, year = d.getFullYear();
+                return (day < 10 ? '0' + day : day) + '.' + (month < 10 ? '0' + month : month) + '.' + year;
+            }
+            return String(rawDate);
+        }
 
-async function loadData() {
-    if (!_0xlu) return;
-    try {
-        let d = await _0xfp('getData', { driver: MY_DRIVER_NAME });
-        allData = d.map(i => ({
-            rowId: i.rowId,
-            date: convertDate(i.date),
-            route: i.route,
-            time: convertTime(i.time),
-            name: i.name || 'Имя не указано',
-            phone: i.phone || '—',
-            seats: i.seats ? Number(i.seats) : 1,
-            driver: i.driver || 'Не назначен',
-            payment: i.payment || '',
-            note: i.note || '',
-            checked: !!i.checked,
-            confirmed: !!i.confirmed
-        })).filter(i => i.date && i.route && i.time);
-        renderCurrentView();
-    } catch (e) {
-        document.getElementById('mainContent').innerHTML = `<div class="empty-state">Ошибка загрузки: ${e.message}</div>`;
-    }
-}
+        function convertTime(rawTime) {
+            if (!rawTime) return '';
+            if (typeof rawTime === 'string') {
+                let match = rawTime.match(/(\d{2}):(\d{2})/);
+                if (match) return match[1] + ':' + match[2];
+            }
+            let t = new Date(rawTime);
+            if (!isNaN(t.getTime())) {
+                return String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0');
+            }
+            return String(rawTime).trim().substring(0, 5);
+        }
 
-function getFilteredData() { return filterByDriver(allData) }
-function getUniqueDates() { return getUpcomingDates([...new Set(getFilteredData().map(i => i.date))], 7) }
-function getTotalSeatsForDate(d) { return getFilteredData().filter(i => i.date === d).reduce((s, i) => s + i.seats, 0) }
+        async function loadData() {
+            try {
+                const noCacheUrl = API_URL + (API_URL.includes('?') ? '&' : '?') + '_nocache=' + Date.now();
+                const response = await fetch(noCacheUrl);
+                const data = await response.json();
 
-function renderCurrentView() {
-    currentView === 'dates' ? renderDatesView() : renderTimesView();
-    document.getElementById('backBtn').style.display = currentView === 'dates' ? 'none' : 'inline-block';
-}
+                allData = data.map(item => ({
+                    rowId: item.rowId,
+                    date: convertDate(item.date),
+                    route: item.route,
+                    time: convertTime(item.time),
+                    name: item.name || 'Имя не указано',
+                    phone: item.phone || '—',
+                    seats: item.seats ? Number(item.seats) : 1,
+                    driver: item.driver || 'Не назначен',
+                    payment: item.payment || '',
+                    note: item.note || '',
+                    checked: !!item.checked,
+                    confirmed: !!item.confirmed
+                })).filter(item => item.date && item.route && item.time);
 
-function renderDatesView() {
-    let c = document.getElementById('mainContent'), d = getUniqueDates();
-    if (!d.length) { c.innerHTML = '<div class="empty-state">Нет рейсов</div>'; return }
-    c.innerHTML = `<div class="dates-scroll">${d.map(date => `<div class="date-chip" data-date="${date}">${date}<span class="date-seats">${getTotalSeatsForDate(date)} м</span></div>`).join('')}</div><div id="timesContainer"></div>`;
-    
-    document.querySelectorAll('.date-chip').forEach(chip => {
-        chip.onclick = () => {
-            selectedDate = chip.dataset.date;
-            document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            currentView = 'times';
+                renderCurrentView();
+            } catch (error) {
+                document.getElementById('mainContent').innerHTML = `<div class="empty-state">Ошибка: ${error.message}</div>`;
+            }
+        }
+
+        function getFilteredData() { return filterByDriver(allData); }
+        function getUniqueDates() { return getUpcomingDates([...new Set(getFilteredData().map(item => item.date))], 7); }
+        function getTotalSeatsForDate(date) { return getFilteredData().filter(item => item.date === date).reduce((sum, item) => sum + item.seats, 0); }
+
+        function renderCurrentView() {
+            if (currentView === 'dates') renderDatesView();
+            else renderTimesView();
+            document.getElementById('backBtn').style.display = currentView === 'dates' ? 'none' : 'inline-block';
+        }
+
+        function renderDatesView() {
+            const container = document.getElementById('mainContent');
+            const dates = getUniqueDates();
+            if (dates.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет рейсов</div>';
+                return;
+            }
+            container.innerHTML = `<div class="dates-scroll">${dates.map(date => `<div class="date-chip" data-date="${date}">${date}<span class="date-seats">${getTotalSeatsForDate(date)} м</span></div>`).join('')}</div><div id="timesContainer"></div>`;
+            document.querySelectorAll('.date-chip').forEach(chip => {
+                chip.onclick = () => {
+                    selectedDate = chip.dataset.date;
+                    document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    currentView = 'times';
+                    renderCurrentView();
+                };
+            });
+            if (selectedDate && dates.includes(selectedDate)) {
+                const activeChip = document.querySelector(`.date-chip[data-date="${selectedDate}"]`);
+                if (activeChip) activeChip.classList.add('active');
+            } else if (dates.length > 0) {
+                document.querySelector('.date-chip').click();
+            }
+        }
+
+        function renderTimesView() {
+            const container = document.getElementById('timesContainer') || document.getElementById('mainContent');
+            if (!selectedDate) return;
+            
+            let filtered = getFilteredData().filter(item => item.date === selectedDate);
+            const timeSlots = [];
+            TIME_ORDER.forEach(t => {
+                const items = filtered.filter(f => f.time === t);
+                if (items.length > 0) timeSlots.push({ time: t, items });
+            });
+
+            if (timeSlots.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет рейсов на выбранную дату</div>';
+                return;
+            }
+
+            container.innerHTML = timeSlots.map(slot => `
+                <div class="time-group">
+                    <div class="time-header" data-time="${slot.time}">
+                        <span>${slot.time}</span>
+                        <span class="time-seats">${slot.items.reduce((s, i) => s + i.seats, 0)} мест</span>
+                    </div>
+                    <div class="time-content" id="tc-${slot.time.replace(':', '')}" style="display:none">
+                        ${[...new Set(slot.items.map(i => i.route))].map(route => {
+                            const passengers = slot.items.filter(i => i.route === route);
+                            const totalSeats = passengers.reduce((s, p) => s + p.seats, 0);
+                            return `
+                            <div class="route-detail">
+                                <div>
+                                    <span class="route-title">${route.replace('-', ' → ')}</span>
+                                    <span class="route-total">${totalSeats} чел</span>
+                                </div>
+                                <div class="table-wrapper">
+                                    <table class="passengers-table">
+                                        <thead>
+                                            <tr>
+                                                <th>№</th>
+                                                <th>ФИО</th>
+                                                <th>Телефон / Бронь</th>
+                                                <th>Мест</th>
+                                                <th>Оплата</th>
+                                                <th>Явка</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${passengers.map((p, idx) => {
+                                                const cleanPhone = cleanPhoneNumber(p.phone);
+                                                const phoneDisplay = p.phone || '—';
+                                                const phoneLinkHtml = cleanPhone ? 
+                                                    `<a href="tel:${cleanPhone}" class="phone-link" onclick="event.stopPropagation();">
+                                                        <span>${phoneDisplay}</span>
+                                                    </a>` : 
+                                                    `<span class="phone-link" style="cursor: default;"><span>${phoneDisplay}</span></span>`;
+                                                
+                                                return `
+                                                <tr>
+                                                    <td>${idx + 1}</td>
+                                                    <td><strong>${escapeHtml(p.name)}</strong></td>
+                                                    <td>
+                                                        <div class="phone-container ${p.confirmed ? 'confirmed' : ''}" data-rowid="${p.rowId}">
+                                                            ${phoneLinkHtml}
+                                                            <button class="btn-confirm-status" data-rowid="${p.rowId}"></button>
+                                                        </div>
+                                                    </td>
+                                                    <td>${p.seats}</td>
+                                                    <td>${formatPayment(p.payment, p.note)}</td>
+                                                    <td class="check-cell">
+                                                        <button class="btn-presence ${p.checked ? 'checked' : ''}" data-rowid="${p.rowId}">${p.checked ? '✅ На месте' : '⏳ Ожидание'}</button>
+                                                    </td>
+                                                </tr>`;
+                                            }).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
+            `).join('');
+
+            document.querySelectorAll('.time-header').forEach(header => {
+                const time = header.dataset.time;
+                const content = document.getElementById(`tc-${time.replace(':', '')}`);
+                header.onclick = () => {
+                    content.style.display = content.style.display === 'none' ? 'block' : 'none';
+                };
+            });
+
+            document.querySelectorAll('.btn-confirm-status').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const container = btn.closest('.phone-container');
+                    if (container) {
+                        const rowId = Number(container.dataset.rowid);
+                        const isConfirmed = container.classList.contains('confirmed');
+                        saveCheckToDatabase(rowId, !isConfirmed, btn, 'confirmed');
+                    }
+                };
+            });
+
+            document.querySelectorAll('.btn-presence').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const rowId = Number(btn.dataset.rowid);
+                    const isChecked = btn.classList.contains('checked');
+                    saveCheckToDatabase(rowId, !isChecked, btn, 'present');
+                };
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        document.getElementById('backBtn').onclick = () => {
+            currentView = 'dates';
+            selectedDate = null;
             renderCurrentView();
-        }
-    });
-    if (selectedDate && d.includes(selectedDate)) {
-        document.querySelector(`.date-chip[data-date="${selectedDate}"]`)?.classList.add('active');
-    } else if (d.length) {
-        document.querySelector('.date-chip').click();
-    }
-}
+        };
 
-function renderTimesView() {
-    let c = document.getElementById('timesContainer') || document.getElementById('mainContent');
-    if (!selectedDate) return;
-    let f = getFilteredData().filter(i => i.date === selectedDate), slots = [];
-    
-    TIME_ORDER.forEach(t => {
-        let items = f.filter(f => f.time === t);
-        items.length && slots.push({ time: t, items });
-    });
-    
-    if (!slots.length) { c.innerHTML = '<div class="empty-state">Нет рейсов на выбранную дату</div>'; return }
-    
-    c.innerHTML = slots.map(slot => `
-        <div class="time-group">
-            <div class="time-header" data-time="${slot.time}">
-                <span>${slot.time}</span>
-                <span class="time-seats">${slot.items.reduce((s, i) => s + i.seats, 0)} мест</span>
-            </div>
-            <div class="time-content" id="tc-${slot.time.replace(':', '')}" style="display:none">
-                ${[...new Set(slot.items.map(i => i.route))].map(route => {
-                    let ps = slot.items.filter(i => i.route === route), ts = ps.reduce((s, p) => s + p.seats, 0);
-                    return `
-                    <div class="route-detail">
-                        <div>
-                            <span class="route-title">${route.replace('-', ' → ')}</span>
-                            <span class="route-total">${ts} чел</span>
-                        </div>
-                        <div class="table-wrapper">
-                            <table class="passengers-table">
-                                <thead>
-                                    <tr><th>№</th><th>ФИО</th><th>Телефон / Бронь</th><th>Мест</th><th>Оплата</th><th>Явка</th></tr>
-                                </thead>
-                                <tbody>
-                                    ${ps.map((p, idx) => {
-                                        let cp = cleanPhone(p.phone), pd = p.phone || '—',
-                                            phl = cp ? `<a href="tel:${cp}" class="phone-link" onclick="event.stopPropagation()"><span>${pd}</span></a>` : `<span class="phone-link"><span>${pd}</span></span>`;
-                                        return `
-                                        <tr>
-                                            <td>${idx + 1}
-                                            <td><strong>${escapeHtml(p.name)}</strong>
-                                            <td>
-                                                <div class="phone-container ${p.confirmed ? 'confirmed' : ''}" data-rowid="${p.rowId}">
-                                                    ${phl}
-                                                    <button class="btn-confirm-status" data-rowid="${p.rowId}"></button>
-                                                </div>
-                                            <td>${p.seats}
-                                            <td>${formatPayment(p.payment, p.note)}
-                                            <td class="check-cell">
-                                                <button class="btn-presence ${p.checked ? 'checked' : ''}" data-rowid="${p.rowId}">${p.checked ? '✅ На месте' : '⏳ Ожидание'}</button>
-                                        `;
-                                    }).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>`;
-                }).join('')}
-            </div>
-        </div>`).join('');
-        
-    document.querySelectorAll('.time-header').forEach(h => {
-        let t = h.dataset.time, cnt = document.getElementById(`tc-${t.replace(':', '')}`);
-        h.onclick = () => { cnt.style.display = cnt.style.display === 'none' ? 'block' : 'none' }
-    });
-    
-    document.querySelectorAll('.btn-confirm-status').forEach(btn => {
-        btn.onclick = e => {
-            e.stopPropagation();
-            let c = btn.closest('.phone-container');
-            c && saveCheckToDatabase(Number(c.dataset.rowid), !c.classList.contains('confirmed'), btn, 'confirmed');
-        }
-    });
-    
-    document.querySelectorAll('.btn-presence').forEach(btn => {
-        btn.onclick = e => {
-            e.stopPropagation();
-            saveCheckToDatabase(Number(btn.dataset.rowid), !btn.classList.contains('checked'), btn, 'present');
-        }
-    });
-}
-
-function escapeHtml(s) { return s ? s.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;') : '' }
-
-document.getElementById('backBtn').onclick = () => { currentView = 'dates'; selectedDate = null; renderCurrentView() };
-</script>
+        loadData();
+    </script>
 </body>
+
 </html>
