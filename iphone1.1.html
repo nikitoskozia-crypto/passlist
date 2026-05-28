@@ -1,4 +1,13 @@
-
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=yes">
+    <meta name="theme-color" content="#1e3a5f">
+    <title>Владелец | Учёт пассажиров</title>
+    <style>
+        /* --- НОВЫЙ СТИЛЬНЫЙ БЛЮР --- */
+        #auth-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.25);
@@ -307,10 +316,19 @@
             let ns = n ? ` (${n})` : '';
             if (!p || p === '') return `<span class="_0xpmb _0xpmcl">Безнал${ns}</span>`;
             let lp = p.toLowerCase();
+            
+            // Если в строке есть "нал"
             if (lp.includes('нал') || lp.includes('налич') || /^\d/.test(p)) {
+                // Если есть уточнение "по" или "x", выводим всю строку целиком
+                if (lp.includes('по') || lp.includes('x') || lp.includes('*')) {
+                    return `<span class="_0xpmb _0xpmc">${p}${ns}</span>`;
+                }
+                // Иначе пытаемся вытащить только число
                 let m = p.match(/\d+/);
-                return m ? `<span class="_0xpmb _0xpmc">Нал ${m[0]} ₽</span>` : `<span class="_0xpmb _0xpmc">Наличные</span>`;
+                return m ? `<span class="_0xpmb _0xpmc">Нал ${m[0]} ₽</span>` : `<span class="_0xpmb _0xpmc">${p}${ns}</span>`;
             }
+            
+            // Обработка безнала
             return lp.includes('безнал') || lp === 'без' ? `<span class="_0xpmb _0xpmcl">Безнал${ns}</span>` : `<span class="_0xpmb _0xpmcl">${p}${ns}</span>`;
         }
 
@@ -490,4 +508,4 @@
         document.getElementById('_0xbb').onclick = () => { _0xcv = 'dates'; _0xsd = null; _0xrc(); };
     </script>
 </body>
-</html>
+</html> 
