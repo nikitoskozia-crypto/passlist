@@ -1,202 +1,338 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="theme-color" content="#1e3a5f">
-    <title>Алексей Б.| Учёт пассажиров</title>
+    <title>Алексей Б. | Учёт пассажиров</title>
     <style>
-        
-        #auth-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.25);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.4s ease, visibility 0.4s;
-        }
-
-        .auth-card {
-            background: rgba(255, 255, 255, 0.97);
-            padding: 36px 32px;
-            border-radius: 32px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
-            width: 90%;
-            max-width: 380px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            animation: fadeInScale 0.3s ease-out;
-        }
-
-        @keyframes fadeInScale {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .auth-card h2 {
-            color: #1e3a5f;
-            margin-bottom: 8px;
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .auth-subtitle {
-            color: #6c757d;
-            font-size: 14px;
-            margin-bottom: 28px;
-            font-weight: 400;
-        }
-
-        .auth-card input {
-            width: 100%;
-            padding: 16px 18px;
-            border-radius: 16px;
-            border: 2px solid #e9ecef;
-            font-size: 16px;
-            margin-bottom: 20px;
-            outline: none;
-            text-align: left;
-            background: #f8f9fa;
-            font-weight: 500;
-            transition: all 0.2s ease;
+        * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
 
-        .auth-card input:focus {
-            border-color: #1e3a5f;
-            background: #ffffff;
-            box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a1a;
+            padding: 12px;
         }
 
-        .auth-card input::placeholder {
-            color: #adb5bd;
-            font-weight: 400;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
         }
 
-        .auth-card button {
-            width: 100%;
-            padding: 16px;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #1e3a5f 0%, #2c5387 100%);
-            color: #fff;
-            border: none;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-top: 4px;
-            box-shadow: 0 4px 14px rgba(30, 58, 95, 0.35);
-        }
-
-        .auth-card button:active {
-            transform: scale(0.97);
-            background: linear-gradient(135deg, #152e4a 0%, #1e3a5f 100%);
-        }
-
-        .auth-error {
-            color: #dc3545;
-            font-size: 14px;
-            margin-top: 16px;
-            display: none;
-            background: #f8d7da;
-            padding: 10px;
-            border-radius: 12px;
-            font-weight: 500;
-        }
-
-        .lock-icon {
-            background: linear-gradient(135deg, #1e3a5f 0%, #2c5387 100%);
-            width: 60px;
-            height: 60px;
-            border-radius: 30px;
+        h1 {
+            font-size: 22px;
+            margin-bottom: 8px;
+            color: #1e3a5f;
             display: flex;
             align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #1e3a5f;
+            padding: 8px 12px;
+            border-radius: 40px;
+            min-width: 44px;
+            min-height: 44px;
+        }
+
+        .back-btn:active {
+            background: #e0e7f0;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 16px;
+            border-left: 4px solid #1e3a5f;
+            padding-left: 12px;
+            font-size: 14px;
+        }
+
+        .dates-scroll {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 8px 0 16px 0;
+            margin-bottom: 8px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .date-chip {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .date-chip:active {
+            transform: scale(0.97);
+            background: #eef2f6;
+        }
+
+        .date-chip.active {
+            background: #1e3a5f;
+            color: white;
+            border-color: #1e3a5f;
+        }
+
+        .date-chip .date-seats {
+            font-size: 10px;
+            opacity: 0.8;
+        }
+
+        .time-group {
+            background: white;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .time-header {
+            background: #1e3a5f;
+            color: white;
+            padding: 14px 18px;
+            font-weight: 700;
+            font-size: 17px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 52px;
+        }
+
+        .time-header:active {
+            background: #2c4a6e;
+        }
+
+        .time-header .time-seats {
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 40px;
+        }
+
+        .time-content {
+            padding: 0;
+            display: none;
+        }
+
+        .summary-block {
+            background: #f8f9fa;
+            padding: 14px 18px;
+            cursor: pointer;
+            border-bottom: 1px solid #eef2f6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-block:active {
+            background: #eef2f6;
+        }
+
+        .summary-title {
+            font-weight: 600;
+            font-size: 15px;
+            color: #1e3a5f;
+        }
+
+        .summary-seats {
+            background: #e0e7f0;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 13px;
+        }
+
+        .route-detail {
+            border-bottom: 1px solid #eef2f6;
+            padding: 14px 16px;
+        }
+
+        .route-title {
+            font-weight: 700;
+            font-size: 16px;
+            color: #1e3a5f;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #1e3a5f;
+            display: inline-block;
+        }
+
+        .route-total {
+            font-size: 13px;
+            color: #003cff;
+            font-weight: 600;
+            margin-left: 10px;
+            display: inline-block;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 10px;
+            border-radius: 14px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ТАБЛИЦА - ТОЧНО КАК У ВЛАДЕЛЬЦА */
+        .passengers-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            min-width: 650px;
+            font-size: 14px;
+        }
+
+        .passengers-table th,
+        .passengers-table td {
+            padding: 14px 14px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .passengers-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+            font-size: 13px;
+        }
+
+        /* ОПЛАТА - ТОЧНО КАК У ВЛАДЕЛЬЦА (с примечанием для безнала) */
+        .payment-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .payment-cash {
+            background: #d4edda;
+            color: #04701d;
+            border: 1px solid #c3e6cb;
+        }
+
+        .payment-cashless {
+            background: #e8d9ff;
+            color: #2b0367;
+            border: 1px solid #d1c4e9;
+        }
+
+        /* КНОПКА ЯВКИ - ТОЧНО КАК У ВЛАДЕЛЬЦА */
+        .btn-presence {
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
-            margin: 0 auto 20px auto;
-            box-shadow: 0 8px 20px rgba(30, 58, 95, 0.3);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 2px solid #e0e6ed;
+            background: transparent;
+            color: #8395a7;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 90px;
+            min-height: 34px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
         }
 
-        .lock-icon svg {
-            width: 28px;
-            height: 28px;
-            stroke: white;
-            stroke-width: 1.8;
-            fill: none;
+        .btn-presence:active {
+            transform: scale(0.95);
         }
 
-        body.authenticated #auth-overlay {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
+        .btn-presence.checked {
+            background: linear-gradient(135deg, #3cba0a 0%, #3cba0a 100%);
+            color: white;
+            border-color: #3cba0a;
+            box-shadow: 0 4px 12px rgba(68, 189, 50, 0.35);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; background: #f0f2f5; color: #1a1a1a; padding: 12px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        h1 { font-size: 22px; margin-bottom: 8px; color: #1e3a5f; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .back-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: #1e3a5f; padding: 8px 12px; border-radius: 40px; min-width: 44px; min-height: 44px; }
-        .back-btn:active { background: #e0e7f0; }
-        .subtitle { color: #666; margin-bottom: 16px; border-left: 4px solid #1e3a5f; padding-left: 12px; font-size: 14px; }
-        .dates-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 8px 0 16px 0; margin-bottom: 8px; -webkit-overflow-scrolling: touch; }
-        .date-chip { background: white; border: 1px solid #ddd; border-radius: 40px; padding: 10px 16px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; flex-shrink: 0; min-height: 44px; display: flex; align-items: center; gap: 6px; }
-        .date-chip:active { transform: scale(0.97); background: #eef2f6; }
-        .date-chip.active { background: #1e3a5f; color: white; border-color: #1e3a5f; }
-        .date-chip .date-seats { font-size: 10px; opacity: 0.8; }
-        .time-group { background: white; border-radius: 16px; margin-bottom: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
-        .time-header { background: #1e3a5f; color: white; padding: 14px 18px; font-weight: 700; font-size: 17px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 52px; }
-        .time-header:active { background: #2c4a6e; }
-        .time-header .time-seats { font-size: 14px; background: rgba(255, 255, 255, 0.2); padding: 4px 12px; border-radius: 40px; }
-        .time-content { padding: 0; display: none; }
-        .summary-block { background: #f8f9fa; padding: 14px 18px; cursor: pointer; border-bottom: 1px solid #eef2f6; display: flex; justify-content: space-between; align-items: center; }
-        .summary-block:active { background: #eef2f6; }
-        .summary-title { font-weight: 600; font-size: 15px; color: #1e3a5f; }
-        .summary-seats { background: #e0e7f0; padding: 4px 12px; border-radius: 40px; font-size: 13px; }
-        .route-detail { border-bottom: 1px solid #eef2f6; padding: 14px 16px; }
-        .route-title { font-weight: 700; font-size: 16px; color: #1e3a5f; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #1e3a5f; display: inline-block; }
-        .route-total { font-size: 13px; color: #003cff; font-weight: 600; margin-left: 10px; display: inline-block; }
-        .table-wrapper { overflow-x: auto; margin-top: 10px; border-radius: 14px; -webkit-overflow-scrolling: touch; }
-        .passengers-table { width: 100%; border-collapse: collapse; background: white; min-width: 650px; font-size: 14px; }
-        .passengers-table th, .passengers-table td { padding: 14px 14px; text-align: left; border-bottom: 1px solid #eee; vertical-align: middle; }
-        .passengers-table th { background: #f8f9fa; font-weight: 600; color: #555; font-size: 13px; }
-        .payment-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; white-space: nowrap; }
-        .payment-cash { background: #d4edda; color: #04701d; border: 1px solid #c3e6cb; }
-        .payment-cashless { background: #e8d9ff; color: #2b0367; border: 1px solid #d1c4e9; }
-        .btn-presence { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; border: 2px solid #e0e6ed; background: transparent; color: #8395a7; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); min-width: 90px; min-height: 34px; user-select: none; -webkit-tap-highlight-color: transparent; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
-        .btn-presence:active { transform: scale(0.95); }
-        .btn-presence.checked { background: linear-gradient(135deg, #3cba0a 0%, #3cba0a 100%); color: white; border-color: #3cba0a; box-shadow: 0 4px 12px rgba(68, 189, 50, 0.35); }
-        .btn-presence:disabled { opacity: 0.6; cursor: wait; }
-        .empty-state { text-align: center; padding: 40px; background: white; border-radius: 16px; color: #999; font-size: 14px; }
-        .loading { text-align: center; padding: 40px; color: #666; font-size: 14px; }
-        .info-note { background: #e8f4fd; border-radius: 12px; padding: 10px 14px; margin-top: 16px; font-size: 11px; color: #1e3a5f; }
-        .check-cell { text-align: center !important; width: 110px; }
-        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e3a5f; color: white; padding: 10px 20px; border-radius: 40px; font-size: 13px; z-index: 1000; animation: fadeInOut 1.5s ease; pointer-events: none; white-space: nowrap; }
-        @keyframes fadeInOut { 0% { opacity: 0; transform: translateX(-50%) translateY(20px); } 15% { opacity: 1; transform: translateX(-50%) translateY(0); } 85% { opacity: 1; transform: translateX(-50%) translateY(0); } 100% { opacity: 0; transform: translateX(-50%) translateY(-20px); } }
-        @media (max-width: 700px) { .passengers-table { font-size: 13px; min-width: 600px; } .passengers-table th, .passengers-table td { padding: 10px 10px; } .btn-presence { padding: 4px 10px; font-size: 10px; min-width: 80px; min-height: 30px; } .payment-badge { padding: 3px 10px; font-size: 11px; } }
+        .btn-presence:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 16px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .info-note {
+            background: #e8f4fd;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-top: 16px;
+            font-size: 11px;
+            color: #1e3a5f;
+        }
+
+        .check-cell {
+            text-align: center !important;
+            width: 110px;
+        }
+
+        @media (max-width: 700px) {
+            .passengers-table {
+                font-size: 13px;
+                min-width: 600px;
+            }
+            .passengers-table th,
+            .passengers-table td {
+                padding: 10px 10px;
+            }
+            .btn-presence {
+                padding: 4px 10px;
+                font-size: 10px;
+                min-width: 80px;
+                min-height: 30px;
+            }
+            .payment-badge {
+                padding: 3px 10px;
+                font-size: 11px;
+            }
+        }
     </style>
 </head>
+
 <body>
-
-    <div id="auth-overlay">
-        <div class="auth-card">
-            <div class="lock-icon">
-                <svg viewBox="0 0 24 24" stroke="currentColor">
-                    <path d="M12 2C9.24 2 7 4.24 7 7v3H6c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8c0-1.1-.9-2-2-2h-1V7c0-2.76-2.24-5-5-5z" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 14v3" stroke-linecap="round"/>
-                </svg>
-            </div>
-            <h2>Добро пожаловать</h2>
-            <div class="auth-subtitle">Введите пароль для доступа</div>
-            <input type="password" id="auth-pass" placeholder="Пароль" autofocus>
-            <button id="auth-submit">Войти в систему</button>
-            <div class="auth-error" id="auth-err">Неверный пароль</div>
-        </div>
-    </div>
-
     <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 8px;">
             <h1>
@@ -207,113 +343,53 @@
 
         <div class="subtitle" id="subtitle">Ваши рейсы на ближайшие дни</div>
         <div id="mainContent">
-            <div class="loading">Загрузка данных...</div>
+            <div class="loading">Загрузка...</div>
         </div>
         <div class="info-note" id="driverNote">Здесь отображаются только рейсы, где в колонке "Водитель" указано "Алексей Б."</div>
     </div>
 
     <script>
-        
-        const WORKER_URL = "https://site44.nikitoskozia.workers.dev/";
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxBeKVIwCUN-pcI2WvdzziYUNQgB3XrKiNfDhzloOJN3Pq2_MfUmlzXxg1huSQ5l_1BZA/exec';
         const TIME_ORDER = ['03:30', '10:00', '11:30', '14:00', '15:30', '16:30', '18:00', '21:30'];
         const MY_DRIVER_NAME = 'Алексей Б.';
-        
+        let currentDriver = MY_DRIVER_NAME;
         let allData = [];
         let currentView = 'dates';
         let selectedDate = null;
-        let currentDriver = MY_DRIVER_NAME;
-        let _0xlu = "";    
-        let _0xat = "";      
 
-        async function _0xauth() {
-            const passField = document.getElementById('auth-pass');
-            const submitBtn = document.getElementById('auth-submit');
-            const errLabel = document.getElementById('auth-err');
-            
-            const p = passField.value;
-            if (!p) return;
+        // Хранилище для отметок явки (локальное)
+        const STORAGE_CHECKS_KEY = 'arrivalChecks_alexey';
+        let arrivalChecks = {};
 
-            submitBtn.innerText = "Проверка...";
-            submitBtn.disabled = true;
-            errLabel.style.display = 'none';
-
-            try {
-                const res = await fetch(WORKER_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: "get_config", password: p, targetDriver: MY_DRIVER_NAME})
-                });
-                
-                const data = await res.json();
-                if (data.success) {
-                    _0xlu = data.url;
-                    _0xat = data.token;
-                    
-                    document.body.classList.add('authenticated');
-                    
-                    setTimeout(() => {
-                        loadData(); 
-                    }, 400);
-
-                } else {
-                    errLabel.style.display = 'block';
-                    submitBtn.innerText = "Войти в систему";
-                    submitBtn.disabled = false;
-                    passField.value = '';
-                    passField.focus();
-                }
-            } catch (e) {
-                alert("Ошибка связи с сервером");
-                submitBtn.innerText = "Войти в систему";
-                submitBtn.disabled = false;
-            }
+        function loadChecksFromStorage() {
+            const saved = localStorage.getItem(STORAGE_CHECKS_KEY);
+            if (saved) arrivalChecks = JSON.parse(saved);
         }
 
-        document.getElementById('auth-submit').onclick = _0xauth;
-        document.getElementById('auth-pass').onkeypress = (e) => { if(e.key === 'Enter') _0xauth(); };
-
-        // ========== БЕЗОПАСНЫЙ ЗАПРОС К ДАННЫМ (из кода владельца) ==========
-        async function callProxy(action, requestData = {}) {
-            let res = await fetch(_0xlu, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ appToken: _0xat, action: action, ...requestData })
-            });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            return res.json();
+        function saveCheckToStorage(key, isChecked) {
+            if (isChecked) arrivalChecks[key] = true;
+            else delete arrivalChecks[key];
+            localStorage.setItem(STORAGE_CHECKS_KEY, JSON.stringify(arrivalChecks));
         }
 
-        function showToast(message, isError = false) {
-            document.querySelector('.toast')?.remove();
-            let toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = message;
-            toast.style.background = isError ? '#c62828' : '#1e3a5f';
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 1500);
+        // ФОРМАТИРОВАНИЕ ОПЛАТЫ - ТОЧНО КАК У ВЛАДЕЛЬЦА
+        // Примеры: "Безнал", "Безнал (РосБилет)", "Нал 500 ₽", "Наличные"
+       function formatPayment(payment, note) {
+        const noteStr = note ? ` (${note})` : '';
+        if (!payment || payment === '') return `<span class="payment-badge payment-cashless">Безнал${noteStr}</span>`;
+        const lowerPayment = payment.toLowerCase();
+        if (lowerPayment.includes('нал') || lowerPayment.includes('налич') || /^\d/.test(payment)) {
+            const moneyMatch = payment.match(/\d+/);
+            if (moneyMatch) return `<span class="payment-badge payment-cash">Нал ${moneyMatch[0]} ₽</span>`;
+            return `<span class="payment-badge payment-cash">Наличные</span>`;
         }
-
-        function formatPayment(p, n) {
-    let ns = n ? ` (${n})` : '';
-    if (!p || p === '') return `<span class="payment-badge payment-cashless">Безнал${ns}</span>`;
-    let lp = p.toLowerCase();
-    
-    // Проверяем, относится ли запись к наличным
-    if (lp.includes('нал') || lp.includes('налич') || /^\d/.test(p)) {
-        // Если в строке есть сложные условия/уточнения ("по", "х", "*") – выводим текст полностью
-        if (lp.includes('по') || lp.includes('x') || lp.includes('*')) {
-            return `<span class="payment-badge payment-cash">${p}${ns}</span>`;
-        }
-        // Если это просто число – добавляем знак рубля
-        let m = p.match(/\d+/);
-        return m ? `<span class="payment-badge payment-cash">Нал ${m[0]} ₽</span>` : `<span class="payment-badge payment-cash">${p}${ns}</span>`;
+        if (lowerPayment.includes('безнал') || lowerPayment === 'без') return `<span class="payment-badge payment-cashless">Безнал${noteStr}</span>`;
+        return `<span class="payment-badge payment-cashless">${payment}${noteStr}</span>`;
     }
-    
-    // Если это безналичный расчет
-    return lp.includes('безнал') || lp === 'без' ? `<span class="payment-badge payment-cashless">Безнал${ns}</span>` : `<span class="payment-badge payment-cashless">${p}${ns}</span>`;
-}
+
 
         function filterByDriver(data) {
+            if (currentDriver === 'all') return data;
             return data.filter(item => item.driver === currentDriver);
         }
 
@@ -327,7 +403,6 @@
         function isDateUpcoming(dateStr) {
             let today = new Date();
             today.setHours(0, 0, 0, 0);
-            today.setDate(today.getDate() - 1);
             let date = parseDate(dateStr);
             date.setHours(0, 0, 0, 0);
             return date >= today;
@@ -362,14 +437,13 @@
             return String(rawTime).trim().substring(0, 5);
         }
 
-        // ========== ЗАГРУЗКА ДАННЫХ ЧЕРЕЗ ПРОКСИ ==========
         async function loadData() {
-            if (!_0xlu) return;
             try {
-                let dt = await callProxy('getData', { driver: MY_DRIVER_NAME });
-                if (!dt || dt.error) throw new Error(dt?.error || 'Ошибка');
-                
-                allData = dt.map(item => ({
+                const noCacheUrl = API_URL + (API_URL.includes('?') ? '&' : '?') + '_nocache=' + Date.now();
+                const response = await fetch(noCacheUrl);
+                const data = await response.json();
+
+                allData = data.map(item => ({
                     rowId: item.rowId,
                     date: convertDate(item.date),
                     route: item.route,
@@ -382,38 +456,47 @@
                     note: item.note || '',
                     checked: !!item.checked
                 })).filter(item => item.date && item.route && item.time);
-                
+
                 renderCurrentView();
-            } catch (e) {
-                document.getElementById('mainContent').innerHTML = `<div class="empty-state">Ошибка загрузки: ${e.message}</div>`;
-            }
-        }
-
-        // ========== СОХРАНЕНИЕ СТАТУСА ЯВКИ ЧЕРЕЗ ПРОКСИ ==========
-        async function savePresenceToDatabase(rowId, isChecked, element) {
-            if (element.classList.contains('saving')) return;
-            element.classList.add('saving');
-            const originalText = element.innerHTML;
-            element.innerHTML = '⏳...';
-
-            try {
-                await callProxy('saveStatus', { rowId: rowId, checked: isChecked, type: 'present' });
-                
-                const item = allData.find(d => d.rowId === rowId);
-                if (item) item.checked = isChecked;
-                
-                element.classList.toggle('checked', isChecked);
-                element.innerHTML = isChecked ? '✅ На месте' : '⏳ Ожидание';
-                showToast(isChecked ? '✅ Пассажир на месте' : '⏳ Ожидание пассажира');
             } catch (error) {
-                console.error('Save error:', error);
-                element.innerHTML = originalText;
-                showToast('❌ Ошибка сохранения', true);
-            } finally {
-                element.classList.remove('saving');
-                element.disabled = false;
+                document.getElementById('mainContent').innerHTML = `<div class="empty-state">Ошибка: ${error.message}</div>`;
             }
         }
+
+   // ОБНОВЛЕННАЯ ФУНКЦИЯ ЯВКИ
+async function savePresenceToLocal(rowId, isChecked, element) {
+    element.disabled = true;
+    const originalText = element.innerHTML;
+    element.innerHTML = '⏳...';
+
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            // Убираем mode: 'no-cors'
+            headers: { 'Content-Type': 'text/plain' }, // Для Google Script лучше использовать text/plain при POST
+            body: JSON.stringify({
+                rowId: rowId,
+                checked: isChecked,
+                type: 'present'
+            })
+        });
+
+        // Если дошли сюда, значит запрос ушел
+        saveCheckToStorage(`presence_${rowId}`, isChecked);
+        const item = allData.find(d => d.rowId === rowId);
+        if (item) item.checked = isChecked;
+        
+        element.classList.toggle('checked', isChecked);
+        element.innerHTML = isChecked ? '✅ На месте' : '⏳ Ожидание';
+    } catch (error) {
+        // Если ошибка здесь, значит скрипт был развернут не как "Web App" или не с нужными правами
+        console.error('Ошибка:', error);
+        alert('Ошибка сервера. Убедитесь, что скрипт опубликован с доступом для всех.');
+        element.innerHTML = originalText;
+    } finally {
+        element.disabled = false;
+    }
+}
 
         function getFilteredData() { return filterByDriver(allData); }
         function getUniqueDates() { return getUpcomingDates([...new Set(getFilteredData().map(item => item.date))], 7); }
@@ -496,6 +579,8 @@
                                         </thead>
                                         <tbody>
                                             ${passengers.map((p, idx) => {
+                                                const presenceKey = `presence_${p.rowId}`;
+                                                const isPresent = arrivalChecks[presenceKey] || p.checked || false;
                                                 return `
                                                 <tr>
                                                     <td>${idx + 1}</td>
@@ -504,7 +589,7 @@
                                                     <td>${p.seats}</td>
                                                     <td>${formatPayment(p.payment, p.note)}</small></td>
                                                     <td class="check-cell">
-                                                        <button class="btn-presence ${p.checked ? 'checked' : ''}" data-rowid="${p.rowId}">${p.checked ? '✅ На месте' : '⏳ Ожидание'}</button>
+                                                        <button class="btn-presence ${isPresent ? 'checked' : ''}" data-rowid="${p.rowId}">${isPresent ? '✅ На месте' : '⏳ Ожидание'}</button>
                                                     </td>
                                                 </tr>`;
                                             }).join('')}
@@ -517,6 +602,7 @@
                 </div>
             `).join('');
 
+            // Обработчики для заголовков времени
             document.querySelectorAll('.time-header').forEach(header => {
                 const time = header.dataset.time;
                 const content = document.getElementById(`tc-${time.replace(':', '')}`);
@@ -525,11 +611,12 @@
                 };
             });
 
+            // Обработчики для кнопок явки
             document.querySelectorAll('.btn-presence').forEach(btn => {
                 btn.onclick = () => {
                     const rowId = Number(btn.dataset.rowid);
                     const isCurrentlyChecked = btn.classList.contains('checked');
-                    savePresenceToDatabase(rowId, !isCurrentlyChecked, btn);
+                    savePresenceToLocal(rowId, !isCurrentlyChecked, btn);
                 };
             });
         }
@@ -549,6 +636,10 @@
             selectedDate = null;
             renderCurrentView();
         };
+
+        loadChecksFromStorage();
+        loadData();
     </script>
 </body>
+
 </html>
